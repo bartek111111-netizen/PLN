@@ -1,31 +1,32 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useCalculatorStore } from './stores/calculatorStore'
 import { useToastStore } from './stores/toastStore'
 import Toast from './components/Toast.vue'
 import { panel1Schema } from './validation/panel1Schema'
 import { z } from 'zod'
+import type { LayoutItem } from './stores/calculatorStore'
 
 const store = useCalculatorStore()
 const toastStore = useToastStore()
 const currentPanel = ref(1)
 
-const getLayout = (layout, totalWidth) => {
+const getLayout = (layout: LayoutItem[] | null) => {
   if (!layout || !Array.isArray(layout)) return []
   
   let position = 0
   
   return layout.map(item => {
-    const scaled = {
+    const scaled: LayoutItem = {
       ...item,
       position
     }
     
     if (item.type === 'knife' || item.type === 'gum') {
-      scaled.width = item.size || item.width
+      scaled.width = item.size || item.width || 0
       position += scaled.width
     } else if (item.type === 'spacers') {
-      scaled.width = item.totalWidth
+      scaled.width = item.totalWidth || 0
       position += scaled.width
     }
     
@@ -33,11 +34,11 @@ const getLayout = (layout, totalWidth) => {
   })
 }
 
-const switchPanel = (panelNumber) => {
+const switchPanel = (panelNumber: number) => {
   currentPanel.value = panelNumber
 }
 
-const calculatePanel = (panelNumber) => {
+const calculatePanel = (panelNumber: number) => {
   if (panelNumber === 1) {
     try {
       panel1Schema.parse(store.panels.panel1)
@@ -47,9 +48,11 @@ const calculatePanel = (panelNumber) => {
       toastStore.success('Obliczenia wykonane pomyślnie.', 2500)
     } catch (err) {
       if (err instanceof z.ZodError) {
-        toastStore.error(err.errors[0].message)
-      } else {
+        toastStore.error(err.issues[0].message)
+      } else if (err instanceof Error) {
         toastStore.error(err.message)
+      } else {
+        toastStore.error('Wystąpił nieznany błąd.')
       }
     }
   } else {
@@ -73,17 +76,7 @@ onMounted(() => {
       </div>
     </header>
 
-    <!-- Toast Container -->
-    <div class="fixed top-6 right-6 z-[100] flex flex-col gap-2 w-80">
-      <Toast
-        v-for="toast in toastStore.toasts"
-        :key="toast.id"
-        :message="toast.message"
-        :type="toast.type"
-        @close="toastStore.remove(toast.id)"
-      />
-    </div>
-
+    
     <!-- Main Content -->
     <main class="flex-1 max-w-6xl mx-auto w-full px-6 py-12">
       
@@ -114,88 +107,80 @@ onMounted(() => {
       </div>
 
       <!-- Panel 1 -->
-      <transition
-        enter-active-class="transition duration-300 ease-out"
-        enter-from-class="opacity-0 transform scale-95"
-        enter-to-class="opacity-100 transform scale-100"
-        leave-active-class="transition duration-300 ease-in"
-        leave-from-class="opacity-100 transform scale-100"
-        leave-to-class="opacity-0 transform scale-95"
-      >
-        <div v-if="currentPanel === 1" class="bg-gradient-to-br from-slate-800 to-slate-700 p-10 rounded-2xl shadow-2xl border border-slate-600">
+      <div v-if="currentPanel === 1" class="bg-gradient-to-br from-slate-800 to-slate-700 p-10 rounded-2xl shadow-2xl border border-slate-600">
           <h2 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-blue-300 bg-clip-text text-transparent mb-8">Oblicz 1 cięcie</h2>
-          <form @submit.prevent class="space-y-3">
-            <div>
-              <label class="block text-slate-200 font-semibold mb-2 text-sm">Jaka szerokość cięcia</label>
-              <input 
-                v-model="store.panels.panel1.field1"
-                type="number" 
-                step="0.1"
-                min="20"
-                max="1600"
-                class="w-full px-3 py-1.5 bg-slate-900 border-2 border-slate-600 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
-                placeholder="Wpisz wartość (20-1600mm)..."
-              >
-            </div>
-            <div>
-              <label class="block text-slate-200 font-semibold mb-2 text-sm">Grubość materiału</label>
-              <input 
-                v-model="store.panels.panel1.field2"
-                type="number" 
-                step="0.01"
-                min="0.5"
-                max="7"
-                class="w-full px-3 py-1.5 bg-slate-900 border-2 border-slate-600 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
-                placeholder="Wpisz wartość (0.5-7mm)..."
-              >
-            </div>
-            <div>
-              <label class="block text-slate-200 font-semibold mb-2 text-sm">Rozmiar noża</label>
-              <select 
-                v-model="store.panels.panel1.field3"
-                class="w-full px-3 py-1.5 bg-slate-900 border-2 border-slate-600 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
-              >
-                <option value="">Wybierz rozmiar...</option>
-                <option value="9">9mm</option>
-                <option value="12">12mm</option>
-                <option value="20">20mm</option>
-              </select>
-            </div>
-            <button 
-              type="button"
-              @click="calculatePanel(1)"
-              class="w-full mt-4 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold text-sm rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300 transform hover:shadow-lg hover:shadow-green-500/50 active:scale-95"
-            >
-              Oblicz
-            </button>
-          </form>
+           <form @submit.prevent class="space-y-3">
+             <div>
+               <label class="block text-slate-200 font-semibold mb-2 text-sm">Jaka szerokość cięcia</label>
+               <input 
+                 v-model="store.panels.panel1.field1"
+                 type="number" 
+                 step="0.1"
+                 min="20"
+                 max="1600"
+                 class="w-[280px] inline-block px-3 py-1.5 bg-slate-900 border-2 border-slate-600 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+                  placeholder="Wpisz wartość (20-1600mm)..."
+               >
+             </div>
+             <div>
+               <label class="block text-slate-200 font-semibold mb-2 text-sm">Grubość materiału</label>
+               <input 
+                 v-model="store.panels.panel1.field2"
+                 type="number" 
+                 step="0.01"
+                 min="0.5"
+                 max="7"
+               class="w-[280px] inline-block px-3 py-1.5 bg-slate-900 border-2 border-slate-600 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+                  placeholder="Wpisz wartość (0.5-7mm)..."
+               >
+             </div>
+             <div>
+               <label class="block text-slate-200 font-semibold mb-2 text-sm">Rozmiar noża</label>
+               <select 
+                  v-model="store.panels.panel1.field3"
+                  class="w-[280px] inline-block px-3 py-1.5 bg-slate-900 border-2 border-slate-600 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+               >
+                 <option value="">Wybierz rozmiar...</option>
+                 <option value="9">9mm</option>
+                 <option value="12">12mm</option>
+                 <option value="20">20mm</option>
+               </select>
+             </div>
+            <button
+                type="button"
+                @click="calculatePanel(1)"
+                class="w-[350px] inline-block mt-4 px-6 py-3 !bg-gradient-to-r !from-green-400 !to-emerald-500 text-white font-bold text-base rounded-lg shadow-lg shadow-green-500/30 hover:!from-green-500 hover:!to-emerald-600 hover:shadow-green-500/50 transition-all duration-300 transform active:scale-95"
+             >
+               Oblicz
+             </button>
+           </form>
           <transition
             enter-active-class="transition duration-300 ease-out"
             enter-from-class="opacity-0 transform translate-y-2"
             enter-to-class="opacity-100 transform translate-y-0"
           >
-            <div v-if="store.showResult1" class="mt-8 p-6 bg-gradient-to-r from-blue-900/40 to-cyan-900/40 rounded-xl border border-blue-600/50">
+            <div v-if="store.showResult1" class="mt-4 p-5 bg-gradient-to-r from-blue-900/40 to-cyan-900/40 rounded-xl">
               <!-- Visualization -->
               <div v-if="Array.isArray(store.panel1Result)" class="mt-4 flex flex-col items-center justify-center w-full">
                 <p class="text-slate-200 font-semibold mb-4 text-sm">Wizualizacja złożenia:</p>
                 <div class="flex justify-center">
-                  <svg :viewBox="`0 0 ${store.panels.panel1.field1} 150`" :style="{ width: `${store.panels.panel1.field1 * 4.5}px`, height: '100px' }" class="bg-slate-900 rounded-lg border border-slate-700">
-                  <g v-for="(item, index) in getLayout(store.panel1Result, store.panels.panel1.field1)" :key="index">
+                  <svg :viewBox="`0 0 ${store.lastWidth1!} 150`" :style="{ width: `${store.lastWidth1! * 4.5}px`, height: '100px' }" class="bg-slate-900 rounded-lg border border-slate-700">
+                  <g v-for="(item, index) in getLayout(store.panel1Result)" :key="index">
                     <!-- Knives (gray) -->
                     <rect v-if="item.type === 'knife'" 
-                      :x="item.position" 
-                      y="30" 
-                      :width="item.width" 
+                       :x="item.position!" 
+                       y="30" 
+                       :width="item.width!" 
                       height="90" 
                       fill="#808080" 
                       stroke="#ffffff" 
                       stroke-width="1"/>
                     
                     <!-- Gums (colored) -->
-                    <rect v-if="item.type === 'gum'" 
-                      :x="item.position" 
-                      y="35" 
-                      :width="item.width" 
+                   <rect v-if="item.type === 'gum'" 
+                       :x="item.position!" 
+                       y="35" 
+                       :width="item.width!" 
                       height="80" 
                       :fill="item.color === 'blue' ? '#3b82f6' : item.color" 
                       stroke="#ffffff" 
@@ -203,101 +188,99 @@ onMounted(() => {
                       opacity="0.8"/>
                     
                     <!-- Spacers -->
-                    <rect v-if="item.type === 'spacers'" 
-                      :x="item.position" 
-                      y="48" 
-                      :width="item.width" 
+                   <rect v-if="item.type === 'spacers'" 
+                       :x="item.position!" 
+                       y="48" 
+                       :width="item.width!" 
                       height="54" 
                       fill="#a0a0a0" 
                       stroke="#ffffff" 
                       stroke-width="1"
                       opacity="0.7"/>
-                    <text v-if="item.type === 'spacers'" 
-                      :x="item.position + item.width/2" 
-                      y="80" 
-                      text-anchor="middle" 
-                      fill="#ffffff" 
-                      font-size="8">
-                      D{{ item.width.toFixed(1) }}
+                   <text v-if="item.type === 'spacers'" 
+                       :x="item.position! + item.width! / 2" 
+                       y="80" 
+                       text-anchor="middle" 
+                       fill="#ffffff" 
+                       font-size="8">
+                       D{{ item.width!.toFixed(1) }}
                     </text>
                   </g>
-                  <!-- Total width line -->
-                  <line x1="0" y1="15" :x2="store.panels.panel1.field1 * 2" y2="15" stroke="#10b981" stroke-width="2" stroke-dasharray="5,5"/>
-                  <text x="0" y="12" fill="#10b981" font-size="10" font-weight="bold">
-                    {{ store.panels.panel1.field1 }}mm
-                  </text>
+
                 </svg>
                 </div>
               </div>
               <!-- Text fallback -->
               <div v-else>
                 <p class="text-slate-100"><strong class="text-blue-300">Wynik:</strong> <span class="text-white font-mono text-lg">{{ store.panel1Result }}</span></p>
-              </div>
-            </div>
-          </transition>
-        </div>
-      </transition>
+             </div>
+             </div>
+           </transition>
+         </div>
 
       <!-- Panel 2 -->
-      <transition
-        enter-active-class="transition duration-300 ease-out"
-        enter-from-class="opacity-0 transform scale-95"
-        enter-to-class="opacity-100 transform scale-100"
-        leave-active-class="transition duration-300 ease-in"
-        leave-from-class="opacity-100 transform scale-100"
-        leave-to-class="opacity-0 transform scale-95"
-      >
-        <div v-if="currentPanel === 2" class="bg-gradient-to-br from-slate-800 to-slate-700 p-10 rounded-2xl shadow-2xl border border-slate-600">
+      <div v-if="currentPanel === 2" class="bg-gradient-to-br from-slate-800 to-slate-700 p-10 rounded-2xl shadow-2xl border border-slate-600">
           <h2 class="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-300 bg-clip-text text-transparent mb-8">Oblicz wszystkie cięcia</h2>
           <form @submit.prevent class="space-y-6">
-            <div>
+             <div>
               <label class="block text-slate-200 font-semibold mb-3">Pole 1</label>
-              <input 
-                v-model="store.panels.panel2.field1"
-                type="text" 
-                class="w-full px-5 py-3 bg-slate-900 border-2 border-slate-600 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition"
-                placeholder="Wpisz wartość..."
-              >
-            </div>
-            <div>
+                <input 
+                   v-model="store.panels.panel2.field1"
+                   type="text" 
+                   class="w-[280px] inline-block px-5 py-3 bg-slate-900 border-2 border-slate-600 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition"
+                   placeholder="Wpisz wartość..."
+                 >
+             </div>
+             <div>
               <label class="block text-slate-200 font-semibold mb-3">Pole 2</label>
-              <input 
-                v-model="store.panels.panel2.field2"
-                type="text" 
-                class="w-full px-5 py-3 bg-slate-900 border-2 border-slate-600 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition"
-                placeholder="Wpisz wartość..."
-              >
-            </div>
-            <div>
-              <label class="block text-slate-200 font-semibold mb-3">Pole 3</label>
-              <input 
-                v-model="store.panels.panel2.field3"
-                type="text" 
-                class="w-full px-5 py-3 bg-slate-900 border-2 border-slate-600 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition"
-                placeholder="Wpisz wartość..."
-              >
-            </div>
-            <button 
-              type="button"
-              @click="calculatePanel(2)"
-              class="w-full mt-8 px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-300 transform hover:shadow-lg hover:shadow-green-500/50 active:scale-95"
-            >
-              Oblicz
-            </button>
-          </form>
+                <input 
+                   v-model="store.panels.panel2.field2"
+                   type="text" 
+                   class="w-[280px] inline-block px-5 py-3 bg-slate-900 border-2 border-slate-600 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition"
+                   placeholder="Wpisz wartość..."
+                 >
+             </div>
+             <div>
+             <label class="block text-slate-200 font-semibold mb-3">Pole 3</label>
+                <input 
+                   v-model="store.panels.panel2.field3"
+                   type="text" 
+                   class="w-[280px] inline-block px-5 py-3 bg-slate-900 border-2 border-slate-600 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition"
+                   placeholder="Wpisz wartość..."
+                 >
+             </div>
+           <button
+                type="button"
+                @click="calculatePanel(2)"
+                class="w-[350px] inline-block mt-8 px-6 py-4 !bg-gradient-to-r !from-green-400 !to-emerald-500 text-white font-bold text-base rounded-xl shadow-lg shadow-green-500/30 hover:!from-green-500 hover:!to-emerald-600 hover:shadow-green-500/50 transition-all duration-300 transform active:scale-95"
+             >
+               Oblicz
+             </button>
+           </form>
           <transition
             enter-active-class="transition duration-300 ease-out"
             enter-from-class="opacity-0 transform translate-y-2"
             enter-to-class="opacity-100 transform translate-y-0"
           >
-            <div v-if="store.showResult2" class="mt-8 p-6 bg-gradient-to-r from-cyan-900/40 to-blue-900/40 rounded-xl border border-cyan-600/50">
+            <div v-if="store.showResult2" class="mt-4 p-5 bg-gradient-to-r from-cyan-900/40 to-blue-900/40 rounded-xl">
               <p class="text-slate-100"><strong class="text-cyan-300">Wynik:</strong> <span class="text-white font-mono text-lg">{{ store.panel2Result }}</span></p>
             </div>
-          </transition>
-        </div>
-      </transition>
+           </transition>
+         </div>
 
-    </main>
+     </main>
+  </div>
+
+  <!-- Toast Container (poza głównym divem, żeby nie był obcięty) -->
+  <div style="position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; width: 320px;">
+     <Toast
+      v-for="toast in toastStore.toasts"
+      :key="toast.id"
+      :message="toast.message"
+      :type="toast.type"
+      :createdAt="toast.createdAt"
+      :duration="toast.duration"
+    />
   </div>
 </template>
 

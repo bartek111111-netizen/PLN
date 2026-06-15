@@ -1,10 +1,30 @@
 import { defineStore } from 'pinia'
 
+interface PanelState {
+  field1: string
+  field2: string
+  field3: string
+}
+
+export interface LayoutItem {
+  type: 'knife' | 'gum' | 'spacers'
+  size?: number
+  totalWidth?: number
+  color?: string
+  width?: number
+  position?: number
+}
+
+export interface ScaledLayoutItem extends LayoutItem {
+  width: number
+  position: number
+}
+
 export const useCalculatorStore = defineStore('calculator', {
   state: () => ({
     panels: {
-      panel1: { field1: '', field2: '', field3: '' },
-      panel2: { field1: '', field2: '', field3: '' }
+      panel1: { field1: '', field2: '', field3: '' } as PanelState,
+      panel2: { field1: '', field2: '', field3: '' } as PanelState
     },
     spacers: [
       1.5, 1.8, 2, 2.05, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 
@@ -18,21 +38,22 @@ export const useCalculatorStore = defineStore('calculator', {
       { size: 20, color: 'yellow' }
     ],
     knives: [9, 12, 20],
-    panel1Result: null,
+    panel1Result: null as LayoutItem[] | null,
     panel2Result: null,
     showResult1: false,
     showResult2: false,
+    lastWidth1: null as number | null,
   }),
   
   actions: {
-    setPanel1Values(values) {
+    setPanel1Values(values: PanelState) {
       this.panels.panel1 = { ...values };
     },
-    setPanel2Values(values) {
+    setPanel2Values(values: PanelState) {
       this.panels.panel2 = { ...values };
     },
     
-    calculate(panelNumber, values) {
+    calculate(panelNumber: number, values: PanelState) {
       if (panelNumber === 1) {
         const result = this.calculatePanel1(values);
         this.panel1Result = result;
@@ -46,16 +67,18 @@ export const useCalculatorStore = defineStore('calculator', {
       }
     },
 
-    calculatePanel1(values) {
+    calculatePanel1(values: PanelState): LayoutItem[] {
       const width = parseFloat(values.field1);
-      const thickness = parseFloat(values.field2);
+      const _thickness = parseFloat(values.field2);
+      void _thickness;
       const knifeSize = parseFloat(values.field3);
+      this.lastWidth1 = width;
       
       if (width < knifeSize * 2) {
         throw new Error(`Szerokość cięcia (${width}mm) musi być co najmniej 2x rozmiar noża (${knifeSize}mm). Podaj większą liczbę dla szerokości cięcia albo wybierz mniejszy rozmiar noża.`);
       }
       
-      const layout = [];
+      const layout: LayoutItem[] = [];
       layout.push({ type: 'knife', size: knifeSize, color: 'gray' });
       
       let remainingWidth = width - (knifeSize * 2);
@@ -78,8 +101,7 @@ export const useCalculatorStore = defineStore('calculator', {
       return layout;
     },
 
-    calculatePanel2(values) {
-      // Placeholder as in original calculator.js
+    calculatePanel2(_values: PanelState) {
       return null;
     },
 
