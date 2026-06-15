@@ -3,6 +3,7 @@ import { ref, watch, onMounted } from 'vue'
 import { useCalculatorStore } from './stores/calculatorStore'
 import { useToastStore } from './stores/toastStore'
 import Toast from './components/Toast.vue'
+import QRModal from './components/QRModal.vue'
 import { panel1Schema } from './validation/panel1Schema'
 import { z } from 'zod'
 import type { LayoutItem, CutResult } from './stores/calculatorStore'
@@ -10,6 +11,8 @@ import type { LayoutItem, CutResult } from './stores/calculatorStore'
 const store = useCalculatorStore()
 const toastStore = useToastStore()
 const currentPanel = ref(1)
+const showQR = ref(false)
+const appUrl = 'https://bartek111111-netizen.github.io/PLN/'
 
 const getLayout = (layout: LayoutItem[] | null) => {
   if (!layout || !Array.isArray(layout)) return []
@@ -68,10 +71,6 @@ const calculatePanel = (panelNumber: number) => {
 
 watch(() => store.panels.panel1.field2, () => {
   store.autoCalculateGap()
-})
-
-watch(() => store.panels.panel1.field4, () => {
-  store.setGapOverridden(true)
 })
 
 onMounted(() => {
@@ -149,10 +148,11 @@ onMounted(() => {
              </div>
              <div>
                <label class="block text-slate-200 font-semibold mb-2 text-sm">Szczelina cięcia</label>
-               <input
-                 v-model="store.panels.panel1.field4"
-                 type="number"
-                 step="0.1"
+          <input
+                  v-model="store.panels.panel1.field4"
+                  @input="store.setGapOverridden(true)"
+                  type="number"
+                  step="0.1"
                class="w-[280px] inline-block px-3 py-1.5 bg-slate-900 border-2 border-slate-600 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
                   placeholder="Auto (10% grubości)..."
                >
@@ -196,16 +196,19 @@ onMounted(() => {
                        class="bg-slate-900 rounded-lg border border-slate-700"
                      >
                      <g v-for="(item, index) in getLayout(store.panel1Result.cut)" :key="'cut-'+index">
-                       <rect v-if="item.type === 'knife'" :x="item.position!" y="20" :width="item.width!" height="80" fill="#808080" stroke="#ffffff" stroke-width="1"/>
-                       <rect v-if="item.type === 'gum'" :x="item.position!" y="25" :width="item.width!" height="70" :fill="getGumColor(item.color)" stroke="#ffffff" stroke-width="1" opacity="0.8"/>
-                       <rect v-if="item.type === 'spacers'" :x="item.position!" y="35" :width="item.width!" height="50" fill="#a0a0a0" stroke="#ffffff" stroke-width="1" opacity="0.7"/>
-                       <text v-if="item.type === 'spacers'" :x="item.position! + item.width! / 2" y="65" text-anchor="middle" fill="#ffffff" font-size="8">D{{ item.width!.toFixed(1) }}</text>
-                     </g>
-                     </svg>
-                   </div>
-                 </div>
+                   <rect v-if="item.type === 'knife'" :x="item.position!" y="20" :width="item.width!" height="80" fill="#808080" stroke="#ffffff" stroke-width="1"/>
+                        <rect v-if="item.type === 'gum'" :x="item.position!" y="25" :width="item.width!" height="70" :fill="getGumColor(item.color)" stroke="#ffffff" stroke-width="1" opacity="0.8"/>
+                        <text v-if="item.type === 'gum'" :x="item.position! + item.width! / 2" y="65" text-anchor="middle" fill="#ffffff" font-size="8">G{{ item.width!.toFixed(1) }}</text>
+                        <rect v-if="item.type === 'spacer'" :x="item.position!" y="35" :width="item.width!" height="50" fill="#a0a0a0" stroke="#ffffff" stroke-width="1" opacity="0.7"/>
+                        <text v-if="item.type === 'spacer'" :x="item.position! + item.width! / 2" y="65" text-anchor="middle" fill="#ffffff" font-size="8">D{{ item.width!.toFixed(1) }}</text>
+                        <rect v-if="item.type === 'spacers'" :x="item.position!" y="35" :width="item.width!" height="50" fill="#a0a0a0" stroke="#ffffff" stroke-width="1" opacity="0.7"/>
+                        <text v-if="item.type === 'spacers'" :x="item.position! + item.width! / 2" y="65" text-anchor="middle" fill="#ffffff" font-size="8">D{{ item.width!.toFixed(1) }}</text>
+                      </g>
+                      </svg>
+                    </div>
+                  </div>
 
-                 <!-- Dystans cięcia (Spacing) -->
+                  <!-- Dystans cięcia (Spacing) -->
                  <div class="w-full">
                    <p class="text-slate-200 font-semibold mb-2 text-sm">
                      Dystans cięcia: <span class="text-cyan-300">{{ store.panel1Result.spacingWidth.toFixed(1) }}mm</span>
@@ -217,11 +220,11 @@ onMounted(() => {
                        class="bg-slate-900 rounded-lg border border-slate-700"
                      >
                      <g v-for="(item, index) in getLayout(store.panel1Result.spacing)" :key="'spacing-'+index">
-                       <rect v-if="item.type === 'spacer'" :x="item.position!" y="35" :width="item.width!" height="50" fill="#5a6a7a" stroke="#ffffff" stroke-width="1" opacity="0.7"/>
-                        <text v-if="item.type === 'spacer'" :x="item.position! + item.width! / 2" y="65" text-anchor="middle" fill="#ffffff" font-size="8">D{{ item.width!.toFixed(1) }}</text>
-                       <rect v-if="item.type === 'gap'" :x="item.position!" y="20" :width="item.width!" height="80" fill="none" stroke="#ffffff" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+                    <rect v-if="item.type === 'spacer'" :x="item.position!" y="35" :width="item.width!" height="50" fill="#5a6a7a" stroke="#ffffff" stroke-width="1" opacity="0.7"/>
+                         <text v-if="item.type === 'spacer'" :x="item.position! + item.width! / 2" y="65" text-anchor="middle" fill="#ffffff" font-size="8">D{{ item.width!.toFixed(1) }}</text>
                        <rect v-if="item.type === 'gum'" :x="item.position!" y="25" :width="item.width!" height="70" :fill="getGumColor(item.color)" stroke="#ffffff" stroke-width="1" opacity="0.8"/>
-                       <rect v-if="item.type === 'spacers'" :x="item.position!" y="35" :width="item.width!" height="50" fill="#a0a0a0" stroke="#ffffff" stroke-width="1" opacity="0.7"/>
+                        <text v-if="item.type === 'gum'" :x="item.position! + item.width! / 2" y="65" text-anchor="middle" fill="#ffffff" font-size="8">G{{ item.width!.toFixed(1) }}</text>
+                        <rect v-if="item.type === 'spacers'" :x="item.position!" y="35" :width="item.width!" height="50" fill="#a0a0a0" stroke="#ffffff" stroke-width="1" opacity="0.7"/>
                        <text v-if="item.type === 'spacers'" :x="item.position! + item.width! / 2" y="65" text-anchor="middle" fill="#ffffff" font-size="8">D{{ item.width!.toFixed(1) }}</text>
                      </g>
                      </svg>
@@ -296,10 +299,29 @@ onMounted(() => {
       :key="toast.id"
       :message="toast.message"
       :type="toast.type"
-      :createdAt="toast.createdAt"
-      :duration="toast.duration"
-    />
+     :createdAt="toast.createdAt"
+       :duration="toast.duration"
+     />
   </div>
+
+  <!-- QR Button - fixed bottom-left -->
+  <button
+    @click="showQR = true"
+    class="fixed bottom-[50px] left-[50px] z-[200] p-3 rounded-xl bg-slate-700/80 hover:bg-slate-600/90 transition text-white shadow-lg backdrop-blur-sm"
+    title="Kod QR"
+  >
+    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="3" width="7" height="7" rx="1"/>
+      <rect x="14" y="3" width="7" height="7" rx="1"/>
+      <rect x="3" y="14" width="7" height="7" rx="1"/>
+      <rect x="15" y="15" width="2" height="2"/>
+      <rect x="19" y="15" width="2" height="2"/>
+      <rect x="15" y="19" width="2" height="2"/>
+      <rect x="19" y="19" width="2" height="2"/>
+    </svg>
+  </button>
+
+  <QRModal v-if="showQR" :url="appUrl" @close="showQR = false" />
 </template>
 
 <style scoped>

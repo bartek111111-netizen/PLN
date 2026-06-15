@@ -32,29 +32,19 @@ function getSpacerBounds(n: number): { min: number; max: number } {
   }
 }
 
-function buildMiddle(remaining: number, gumColor: string): LayoutItem[] {
+function buildMiddle(remaining: number, gumColor: string, edgeSpacers: boolean = true): LayoutItem[] {
   if (remaining <= 0) return []
 
-  if (remaining < 20) {
-    return [{ type: 'spacers', totalWidth: remaining }]
-  }
+  const slotsFor = (n: number) => edgeSpacers ? n + 1 : n - 1
 
-  if (remaining >= 20 && remaining < 20 + 1.5 + 20) {
-    const spacerEach = (remaining - 20) / 2
-    return [
-      { type: 'spacers', totalWidth: spacerEach },
-      { type: 'gum', size: 20, color: gumColor },
-      { type: 'spacers', totalWidth: spacerEach }
-    ]
-  }
-
-  let bestGums = -1
-  for (let n = 2; n <= 12; n++) {
+  let bestGums = 0
+  const startN = edgeSpacers ? 1 : 2
+  for (let n = startN; n <= 12; n++) {
     const totalGumWidth = n * 20
+    const numSlots = slotsFor(n)
     const spacerSpace = remaining - totalGumWidth
-    if (spacerSpace <= 0) break
+    if (spacerSpace <= 0) continue
 
-    const numSlots = n - 1
     const eachSpacer = spacerSpace / numSlots
     const { min, max } = getSpacerBounds(n)
 
@@ -62,31 +52,55 @@ function buildMiddle(remaining: number, gumColor: string): LayoutItem[] {
       bestGums = n
       break
     }
-    if (eachSpacer < min) {
+    if (eachSpacer < min && n - 1 >= startN) {
       bestGums = n - 1
       break
     }
   }
 
-  if (bestGums < 2) {
-    bestGums = 0
-    for (let n = 2; n <= 15; n++) {
+  if (bestGums === 0) {
+    for (let n = 12; n >= startN; n--) {
       const totalGumWidth = n * 20
-      if (totalGumWidth + (n - 1) * MIN_SPACER > remaining) break
-      bestGums = n
+      const numSlots = slotsFor(n)
+      if (totalGumWidth + numSlots * MIN_SPACER <= remaining) {
+        bestGums = n
+        break
+      }
     }
   }
 
-  const totalGumWidth = bestGums * 20
-  const spacerSpace = remaining - totalGumWidth
-  const numSlots = bestGums - 1
+  if (bestGums === 0) {
+    return [{ type: 'spacers', totalWidth: remaining }]
+  }
+
+  const numSlots = slotsFor(bestGums)
+  const spacerSpace = remaining - bestGums * 20
   const eachSpacer = spacerSpace / numSlots
 
   const layout: LayoutItem[] = []
-  for (let i = 0; i < bestGums; i++) {
+  let roundedSum = 0
+  const spacerCount = edgeSpacers ? numSlots : numSlots
+
+  if (edgeSpacers) {
+    for (let i = 0; i < numSlots; i++) {
+      const rounded = Math.round(eachSpacer * 10) / 10
+      const finalVal = i === numSlots - 1 ? Math.round((spacerSpace - roundedSum) * 10) / 10 : rounded
+      roundedSum += finalVal
+      layout.push({ type: 'spacers', totalWidth: finalVal })
+      if (i < bestGums) {
+        layout.push({ type: 'gum', size: 20, color: gumColor })
+      }
+    }
+  } else {
     layout.push({ type: 'gum', size: 20, color: gumColor })
-    if (i < bestGums - 1) {
-      layout.push({ type: 'spacers', totalWidth: eachSpacer })
+    for (let i = 0; i < numSlots; i++) {
+      const rounded = Math.round(eachSpacer * 10) / 10
+      const finalVal = i === numSlots - 1 ? Math.round((spacerSpace - roundedSum) * 10) / 10 : rounded
+      roundedSum += finalVal
+      layout.push({ type: 'spacers', totalWidth: finalVal })
+      if (i < numSlots - 1) {
+        layout.push({ type: 'gum', size: 20, color: gumColor })
+      }
     }
   }
 
@@ -124,10 +138,11 @@ export const useCalculatorStore = defineStore('calculator', {
       this.panels.panel1 = { ...values };
     },
     autoCalculateGap() {
-      if (this.gapOverridden) return;
-      const thickness = parseFloat(this.panels.panel1.field2);
+      this.gapOverridden = false;
+      const thickness = parseFloat(String(this.panels.panel1.field2).replace(',', '.'));
       if (Number.isFinite(thickness) && thickness > 0) {
-        this.panels.panel1.field4 = (Math.round(thickness * 0.1 * 10) / 10).toFixed(1);
+        const gap = Math.round(thickness * 0.1 * 10) / 10;
+        this.panels.panel1.field4 = gap.toFixed(1);
       }
     },
     setGapOverridden(overridden: boolean) {
@@ -168,19 +183,16 @@ export const useCalculatorStore = defineStore('calculator', {
         throw new Error(`Szczelina cięcia (${gap}mm) nie może być większa niż 80% grubości materiału (${maxGap}mm).`);
       }
 
-      // Cut width = full width minus gap
       const cutWidth = width - gap;
 
       if (cutWidth < knifeSize * 2) {
         throw new Error(`Szerokość cięcia (${width}mm) za mała dla dwóch noży (${knifeSize}mm) i szczeliny (${gap}mm). Cięcie (${cutWidth.toFixed(1)}mm) musi mieścić 2 noże. Wymagane minimum: ${(knifeSize * 2 + gap).toFixed(1)}mm.`);
       }
 
-      // Gum color for spacing: yellow if thickness >= 4, else red
       const spacingGumColor = thickness >= 4 ? 'yellow' : 'red';
 
-      // Build middle sections
-      const cutMiddle = buildMiddle(cutWidth - knifeSize * 2, 'blue');
-      const spacingMiddle = buildMiddle(width - knifeSize * 2 - gap * 2, spacingGumColor);
+      const cutMiddle = buildMiddle(cutWidth - knifeSize * 2, 'blue', false);
+      const spacingMiddle = buildMiddle(width - knifeSize * 2, spacingGumColor, false);
 
       const cut: LayoutItem[] = [
         { type: 'knife', size: knifeSize, color: 'gray' },
@@ -190,17 +202,18 @@ export const useCalculatorStore = defineStore('calculator', {
 
       const spacing: LayoutItem[] = [
         { type: 'spacer', size: knifeSize, color: 'gray' },
-        { type: 'gap', size: gap, color: 'gap' },
         ...spacingMiddle,
-        { type: 'gap', size: gap, color: 'gap' },
         { type: 'spacer', size: knifeSize, color: 'gray' }
       ];
+
+      const sumWidth = (layout: LayoutItem[]) =>
+        layout.reduce((s, i) => s + (i.size || i.totalWidth || 0), 0);
 
       return {
         cut,
         spacing,
-        cutWidth,
-        spacingWidth: width
+        cutWidth: sumWidth(cut),
+        spacingWidth: sumWidth(spacing)
       };
     },
 
