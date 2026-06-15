@@ -6,7 +6,7 @@
 - [x] Wdrożyć Pinia do zarządzania stanem aplikacji
 
 ## 🛠️ Logika i Bezpieczeństwo
-- [ ] Zastąpić ręczną walidację biblioteką Zod
+- [x] Zastąpić ręczną walidację biblioteką Zod
 - [x] Zastąpić `alert()` systemem powiadomień (Toasts)
 - [ ] Uporządkować strukturę danych w `calculator.js`
 

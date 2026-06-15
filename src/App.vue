@@ -3,6 +3,8 @@ import { ref, onMounted } from 'vue'
 import { useCalculatorStore } from './stores/calculatorStore'
 import { useToastStore } from './stores/toastStore'
 import Toast from './components/Toast.vue'
+import { panel1Schema } from './validation/panel1Schema'
+import { z } from 'zod'
 
 const store = useCalculatorStore()
 const toastStore = useToastStore()
@@ -37,35 +39,18 @@ const switchPanel = (panelNumber) => {
 
 const calculatePanel = (panelNumber) => {
   if (panelNumber === 1) {
-    if (!store.panels.panel1.field1 || !store.panels.panel1.field2) {
-      toastStore.error('Wypełnij wszystkie pola!')
-      return
-    }
-    const width = parseFloat(store.panels.panel1.field1)
-    const thickness = parseFloat(store.panels.panel1.field2)
-    if (isNaN(width) || isNaN(thickness)) {
-      toastStore.error('Wpisz prawidłowe liczby!')
-      return
-    }
-    if (width < 20 || width > 1600) {
-      toastStore.error('Szerokość cięcia musi być między 20-1600mm!')
-      return
-    }
-    if (thickness < 0.5 || thickness > 7) {
-      toastStore.error('Grubość materiału musi być między 0.5-7mm!')
-      return
-    }
-    if (!store.panels.panel1.field3) {
-      toastStore.error('Wybierz rozmiar noża!')
-      return
-    }
-
     try {
+      panel1Schema.parse(store.panels.panel1)
+      
       store.calculate(1, store.panels.panel1)
       store.saveToStorage()
       toastStore.success('Obliczenia wykonane pomyślnie.', 2500)
     } catch (err) {
-      toastStore.error(err.message)
+      if (err instanceof z.ZodError) {
+        toastStore.error(err.errors[0].message)
+      } else {
+        toastStore.error(err.message)
+      }
     }
   } else {
     store.calculate(2, store.panels.panel2)
