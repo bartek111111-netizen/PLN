@@ -13,5 +13,9 @@ export const panel1Schema = z.object({
     .refine(isFiniteNumber, { message: 'Wpisz prawidłową liczbę dla grubości materiału!' })
     .min(0.5, { message: 'Grubość materiału musi być co najmniej 0.5mm!' })
     .max(7, { message: 'Grubość materiału nie może przekraczać 7mm!' }),
-  field3: z.string().min(1, { message: 'Wybierz rozmiar noża!' })
+  field3: z.string().min(1, { message: 'Wybierz rozmiar noża!' }),
+  field4: z.coerce
+    .number()
+    .refine(isFiniteNumber, { message: 'Wpisz prawidłową liczbę dla szczeliny cięcia!' })
+    .min(0.1, { message: 'Szczelina cięcia musi być co najmniej 0.1mm!' })
 })

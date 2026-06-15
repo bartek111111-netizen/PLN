@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useCalculatorStore } from './stores/calculatorStore'
 import { useToastStore } from './stores/toastStore'
 import Toast from './components/Toast.vue'
 import { panel1Schema } from './validation/panel1Schema'
 import { z } from 'zod'
-import type { LayoutItem } from './stores/calculatorStore'
+import type { LayoutItem, CutResult } from './stores/calculatorStore'
 
 const store = useCalculatorStore()
 const toastStore = useToastStore()
@@ -13,25 +13,30 @@ const currentPanel = ref(1)
 
 const getLayout = (layout: LayoutItem[] | null) => {
   if (!layout || !Array.isArray(layout)) return []
-  
+
   let position = 0
-  
+
   return layout.map(item => {
     const scaled: LayoutItem = {
       ...item,
       position
     }
-    
-    if (item.type === 'knife' || item.type === 'gum') {
+
+    if (['knife', 'gum', 'gap', 'spacer'].includes(item.type)) {
       scaled.width = item.size || item.width || 0
       position += scaled.width
     } else if (item.type === 'spacers') {
       scaled.width = item.totalWidth || 0
       position += scaled.width
     }
-    
+
     return scaled
   })
+}
+
+const getGumColor = (color?: string) => {
+  const map: Record<string, string> = { blue: '#3b82f6', red: '#ef4444', yellow: '#eab308' }
+  return map[color || 'blue'] || '#3b82f6'
 }
 
 const switchPanel = (panelNumber: number) => {
@@ -60,6 +65,14 @@ const calculatePanel = (panelNumber: number) => {
     store.saveToStorage()
   }
 }
+
+watch(() => store.panels.panel1.field2, () => {
+  store.autoCalculateGap()
+})
+
+watch(() => store.panels.panel1.field4, () => {
+  store.setGapOverridden(true)
+})
 
 onMounted(() => {
   store.loadFromStorage()
@@ -124,14 +137,24 @@ onMounted(() => {
              </div>
              <div>
                <label class="block text-slate-200 font-semibold mb-2 text-sm">Grubość materiału</label>
-               <input 
+               <input
                  v-model="store.panels.panel1.field2"
-                 type="number" 
+                 type="number"
                  step="0.01"
                  min="0.5"
                  max="7"
                class="w-[280px] inline-block px-3 py-1.5 bg-slate-900 border-2 border-slate-600 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
                   placeholder="Wpisz wartość (0.5-7mm)..."
+               >
+             </div>
+             <div>
+               <label class="block text-slate-200 font-semibold mb-2 text-sm">Szczelina cięcia</label>
+               <input
+                 v-model="store.panels.panel1.field4"
+                 type="number"
+                 step="0.1"
+               class="w-[280px] inline-block px-3 py-1.5 bg-slate-900 border-2 border-slate-600 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+                  placeholder="Auto (10% grubości)..."
                >
              </div>
              <div>
@@ -159,62 +182,57 @@ onMounted(() => {
             enter-from-class="opacity-0 transform translate-y-2"
             enter-to-class="opacity-100 transform translate-y-0"
           >
-            <div v-if="store.showResult1" class="mt-4 p-5 bg-gradient-to-r from-blue-900/40 to-cyan-900/40 rounded-xl">
-              <!-- Visualization -->
-              <div v-if="Array.isArray(store.panel1Result)" class="mt-4 flex flex-col items-center justify-center w-full">
-                <p class="text-slate-200 font-semibold mb-4 text-sm">Wizualizacja złożenia:</p>
-                <div class="flex justify-center">
-                  <svg :viewBox="`0 0 ${store.lastWidth1!} 150`" :style="{ width: `${store.lastWidth1! * 4.5}px`, height: '100px' }" class="bg-slate-900 rounded-lg border border-slate-700">
-                  <g v-for="(item, index) in getLayout(store.panel1Result)" :key="index">
-                    <!-- Knives (gray) -->
-                    <rect v-if="item.type === 'knife'" 
-                       :x="item.position!" 
-                       y="30" 
-                       :width="item.width!" 
-                      height="90" 
-                      fill="#808080" 
-                      stroke="#ffffff" 
-                      stroke-width="1"/>
-                    
-                    <!-- Gums (colored) -->
-                   <rect v-if="item.type === 'gum'" 
-                       :x="item.position!" 
-                       y="35" 
-                       :width="item.width!" 
-                      height="80" 
-                      :fill="item.color === 'blue' ? '#3b82f6' : item.color" 
-                      stroke="#ffffff" 
-                      stroke-width="1"
-                      opacity="0.8"/>
-                    
-                    <!-- Spacers -->
-                   <rect v-if="item.type === 'spacers'" 
-                       :x="item.position!" 
-                       y="48" 
-                       :width="item.width!" 
-                      height="54" 
-                      fill="#a0a0a0" 
-                      stroke="#ffffff" 
-                      stroke-width="1"
-                      opacity="0.7"/>
-                   <text v-if="item.type === 'spacers'" 
-                       :x="item.position! + item.width! / 2" 
-                       y="80" 
-                       text-anchor="middle" 
-                       fill="#ffffff" 
-                       font-size="8">
-                       D{{ item.width!.toFixed(1) }}
-                    </text>
-                  </g>
+           <div v-if="store.showResult1" class="mt-4 p-5 bg-gradient-to-r from-blue-900/40 to-cyan-900/40 rounded-xl">
+               <div v-if="store.panel1Result && store.panel1Result.cut" class="mt-4 flex flex-col items-center justify-center w-full gap-6">
+                 <!-- Cięcie (Cut) -->
+                 <div class="w-full">
+                   <p class="text-slate-200 font-semibold mb-2 text-sm">
+                     Cięcie: <span class="text-blue-300">{{ store.panel1Result.cutWidth.toFixed(1) }}mm</span>
+                   </p>
+                   <div class="flex justify-center">
+                     <svg
+                       :viewBox="`0 0 ${store.panel1Result.cutWidth} 120`"
+                       :style="{ width: `${store.panel1Result.cutWidth * 4}px`, height: '80px' }"
+                       class="bg-slate-900 rounded-lg border border-slate-700"
+                     >
+                     <g v-for="(item, index) in getLayout(store.panel1Result.cut)" :key="'cut-'+index">
+                       <rect v-if="item.type === 'knife'" :x="item.position!" y="20" :width="item.width!" height="80" fill="#808080" stroke="#ffffff" stroke-width="1"/>
+                       <rect v-if="item.type === 'gum'" :x="item.position!" y="25" :width="item.width!" height="70" :fill="getGumColor(item.color)" stroke="#ffffff" stroke-width="1" opacity="0.8"/>
+                       <rect v-if="item.type === 'spacers'" :x="item.position!" y="35" :width="item.width!" height="50" fill="#a0a0a0" stroke="#ffffff" stroke-width="1" opacity="0.7"/>
+                       <text v-if="item.type === 'spacers'" :x="item.position! + item.width! / 2" y="65" text-anchor="middle" fill="#ffffff" font-size="8">D{{ item.width!.toFixed(1) }}</text>
+                     </g>
+                     </svg>
+                   </div>
+                 </div>
 
-                </svg>
-                </div>
+                 <!-- Dystans cięcia (Spacing) -->
+                 <div class="w-full">
+                   <p class="text-slate-200 font-semibold mb-2 text-sm">
+                     Dystans cięcia: <span class="text-cyan-300">{{ store.panel1Result.spacingWidth.toFixed(1) }}mm</span>
+                   </p>
+                   <div class="flex justify-center">
+                     <svg
+                       :viewBox="`0 0 ${store.panel1Result.spacingWidth} 120`"
+                       :style="{ width: `${store.panel1Result.spacingWidth * 4}px`, height: '80px' }"
+                       class="bg-slate-900 rounded-lg border border-slate-700"
+                     >
+                     <g v-for="(item, index) in getLayout(store.panel1Result.spacing)" :key="'spacing-'+index">
+                       <rect v-if="item.type === 'spacer'" :x="item.position!" y="35" :width="item.width!" height="50" fill="#5a6a7a" stroke="#ffffff" stroke-width="1" opacity="0.7"/>
+                        <text v-if="item.type === 'spacer'" :x="item.position! + item.width! / 2" y="65" text-anchor="middle" fill="#ffffff" font-size="8">D{{ item.width!.toFixed(1) }}</text>
+                       <rect v-if="item.type === 'gap'" :x="item.position!" y="20" :width="item.width!" height="80" fill="none" stroke="#ffffff" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+                       <rect v-if="item.type === 'gum'" :x="item.position!" y="25" :width="item.width!" height="70" :fill="getGumColor(item.color)" stroke="#ffffff" stroke-width="1" opacity="0.8"/>
+                       <rect v-if="item.type === 'spacers'" :x="item.position!" y="35" :width="item.width!" height="50" fill="#a0a0a0" stroke="#ffffff" stroke-width="1" opacity="0.7"/>
+                       <text v-if="item.type === 'spacers'" :x="item.position! + item.width! / 2" y="65" text-anchor="middle" fill="#ffffff" font-size="8">D{{ item.width!.toFixed(1) }}</text>
+                     </g>
+                     </svg>
+                   </div>
+                 </div>
+               </div>
+               <!-- Text fallback -->
+               <div v-else>
+                 <p class="text-slate-100"><strong class="text-blue-300">Wynik:</strong> <span class="text-white font-mono text-lg">{{ store.panel1Result }}</span></p>
               </div>
-              <!-- Text fallback -->
-              <div v-else>
-                <p class="text-slate-100"><strong class="text-blue-300">Wynik:</strong> <span class="text-white font-mono text-lg">{{ store.panel1Result }}</span></p>
-             </div>
-             </div>
+              </div>
            </transition>
          </div>
 
