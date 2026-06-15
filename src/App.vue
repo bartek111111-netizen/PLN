@@ -1,18 +1,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import calculator from './calculator.js'
+import { useCalculatorStore } from './stores/calculatorStore'
+import { useToastStore } from './stores/toastStore'
+import Toast from './components/Toast.vue'
 
+const store = useCalculatorStore()
+const toastStore = useToastStore()
 const currentPanel = ref(1)
-const panel1 = ref({ field1: '', field2: '', field3: '' })
-const panel2 = ref({ field1: '', field2: '', field3: '' })
-const panel1Result = ref(null)
-const panel2Result = ref(null)
-const showResult1 = ref(false)
-const showResult2 = ref(false)
-
-const switchPanel = (panelNumber) => {
-  currentPanel.value = panelNumber
-}
 
 const getLayout = (layout, totalWidth) => {
   if (!layout || !Array.isArray(layout)) return []
@@ -37,55 +31,50 @@ const getLayout = (layout, totalWidth) => {
   })
 }
 
+const switchPanel = (panelNumber) => {
+  currentPanel.value = panelNumber
+}
+
 const calculatePanel = (panelNumber) => {
   if (panelNumber === 1) {
-    // Validate panel 1
-    if (!panel1.value.field1 || !panel1.value.field2) {
-      alert('Wypełnij wszystkie pola!')
+    if (!store.panels.panel1.field1 || !store.panels.panel1.field2) {
+      toastStore.error('Wypełnij wszystkie pola!')
       return
     }
-    const width = parseFloat(panel1.value.field1)
-    const thickness = parseFloat(panel1.value.field2)
+    const width = parseFloat(store.panels.panel1.field1)
+    const thickness = parseFloat(store.panels.panel1.field2)
     if (isNaN(width) || isNaN(thickness)) {
-      alert('Wpisz prawidłowe liczby!')
+      toastStore.error('Wpisz prawidłowe liczby!')
       return
     }
     if (width < 20 || width > 1600) {
-      alert('Szerokość cięcia musi być między 20-1600mm!')
+      toastStore.error('Szerokość cięcia musi być między 20-1600mm!')
       return
     }
     if (thickness < 0.5 || thickness > 7) {
-      alert('Grubość materiału musi być między 0.5-7mm!')
+      toastStore.error('Grubość materiału musi być między 0.5-7mm!')
       return
     }
-    if (!panel1.value.field3) {
-      alert('Wybierz rozmiar noża!')
+    if (!store.panels.panel1.field3) {
+      toastStore.error('Wybierz rozmiar noża!')
       return
     }
-    calculator.setPanel1Values(panel1.value)
+
     try {
-      const result = calculator.calculate(1, panel1.value)
-      panel1Result.value = result || 'Brak wyniku'
-      showResult1.value = true
-      calculator.saveToStorage()
-    } catch (error) {
-      alert(error.message)
+      store.calculate(1, store.panels.panel1)
+      store.saveToStorage()
+      toastStore.success('Obliczenia wykonane pomyślnie.', 2500)
+    } catch (err) {
+      toastStore.error(err.message)
     }
   } else {
-    calculator.setPanel2Values(panel2.value)
-    const result = calculator.calculate(2, panel2.value)
-    panel2Result.value = result || 'Brak wyniku'
-    showResult2.value = true
-    calculator.saveToStorage()
+    store.calculate(2, store.panels.panel2)
+    store.saveToStorage()
   }
 }
 
 onMounted(() => {
-  calculator.loadFromStorage()
-  const p1 = calculator.getPanel1Values()
-  const p2 = calculator.getPanel2Values()
-  if (Object.keys(p1).length > 0) panel1.value = p1
-  if (Object.keys(p2).length > 0) panel2.value = p2
+  store.loadFromStorage()
 })
 </script>
 
@@ -98,6 +87,17 @@ onMounted(() => {
         <p class="text-blue-100 mt-2 text-lg">Kalkulator do noży.</p>
       </div>
     </header>
+
+    <!-- Toast Container -->
+    <div class="fixed top-6 right-6 z-[100] flex flex-col gap-2 w-80">
+      <Toast
+        v-for="toast in toastStore.toasts"
+        :key="toast.id"
+        :message="toast.message"
+        :type="toast.type"
+        @close="toastStore.remove(toast.id)"
+      />
+    </div>
 
     <!-- Main Content -->
     <main class="flex-1 max-w-6xl mx-auto w-full px-6 py-12">
@@ -143,7 +143,7 @@ onMounted(() => {
             <div>
               <label class="block text-slate-200 font-semibold mb-2 text-sm">Jaka szerokość cięcia</label>
               <input 
-                v-model="panel1.field1"
+                v-model="store.panels.panel1.field1"
                 type="number" 
                 step="0.1"
                 min="20"
@@ -155,7 +155,7 @@ onMounted(() => {
             <div>
               <label class="block text-slate-200 font-semibold mb-2 text-sm">Grubość materiału</label>
               <input 
-                v-model="panel1.field2"
+                v-model="store.panels.panel1.field2"
                 type="number" 
                 step="0.01"
                 min="0.5"
@@ -167,7 +167,7 @@ onMounted(() => {
             <div>
               <label class="block text-slate-200 font-semibold mb-2 text-sm">Rozmiar noża</label>
               <select 
-                v-model="panel1.field3"
+                v-model="store.panels.panel1.field3"
                 class="w-full px-3 py-1.5 bg-slate-900 border-2 border-slate-600 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
               >
                 <option value="">Wybierz rozmiar...</option>
@@ -189,13 +189,13 @@ onMounted(() => {
             enter-from-class="opacity-0 transform translate-y-2"
             enter-to-class="opacity-100 transform translate-y-0"
           >
-            <div v-if="showResult1" class="mt-8 p-6 bg-gradient-to-r from-blue-900/40 to-cyan-900/40 rounded-xl border border-blue-600/50">
+            <div v-if="store.showResult1" class="mt-8 p-6 bg-gradient-to-r from-blue-900/40 to-cyan-900/40 rounded-xl border border-blue-600/50">
               <!-- Visualization -->
-              <div v-if="Array.isArray(panel1Result)" class="mt-4 flex flex-col items-center justify-center w-full">
+              <div v-if="Array.isArray(store.panel1Result)" class="mt-4 flex flex-col items-center justify-center w-full">
                 <p class="text-slate-200 font-semibold mb-4 text-sm">Wizualizacja złożenia:</p>
                 <div class="flex justify-center">
-                  <svg :viewBox="`0 0 ${panel1.field1} 150`" :style="{ width: `${panel1.field1 * 4.5}px`, height: '100px' }" class="bg-slate-900 rounded-lg border border-slate-700">
-                  <g v-for="(item, index) in getLayout(panel1Result, panel1.field1)" :key="index">
+                  <svg :viewBox="`0 0 ${store.panels.panel1.field1} 150`" :style="{ width: `${store.panels.panel1.field1 * 4.5}px`, height: '100px' }" class="bg-slate-900 rounded-lg border border-slate-700">
+                  <g v-for="(item, index) in getLayout(store.panel1Result, store.panels.panel1.field1)" :key="index">
                     <!-- Knives (gray) -->
                     <rect v-if="item.type === 'knife'" 
                       :x="item.position" 
@@ -237,16 +237,16 @@ onMounted(() => {
                     </text>
                   </g>
                   <!-- Total width line -->
-                  <line x1="0" y1="15" :x2="panel1.field1 * 2" y2="15" stroke="#10b981" stroke-width="2" stroke-dasharray="5,5"/>
+                  <line x1="0" y1="15" :x2="store.panels.panel1.field1 * 2" y2="15" stroke="#10b981" stroke-width="2" stroke-dasharray="5,5"/>
                   <text x="0" y="12" fill="#10b981" font-size="10" font-weight="bold">
-                    {{ panel1.field1 }}mm
+                    {{ store.panels.panel1.field1 }}mm
                   </text>
                 </svg>
                 </div>
               </div>
               <!-- Text fallback -->
               <div v-else>
-                <p class="text-slate-100"><strong class="text-blue-300">Wynik:</strong> <span class="text-white font-mono text-lg">{{ panel1Result }}</span></p>
+                <p class="text-slate-100"><strong class="text-blue-300">Wynik:</strong> <span class="text-white font-mono text-lg">{{ store.panel1Result }}</span></p>
               </div>
             </div>
           </transition>
@@ -268,7 +268,7 @@ onMounted(() => {
             <div>
               <label class="block text-slate-200 font-semibold mb-3">Pole 1</label>
               <input 
-                v-model="panel2.field1"
+                v-model="store.panels.panel2.field1"
                 type="text" 
                 class="w-full px-5 py-3 bg-slate-900 border-2 border-slate-600 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition"
                 placeholder="Wpisz wartość..."
@@ -277,7 +277,7 @@ onMounted(() => {
             <div>
               <label class="block text-slate-200 font-semibold mb-3">Pole 2</label>
               <input 
-                v-model="panel2.field2"
+                v-model="store.panels.panel2.field2"
                 type="text" 
                 class="w-full px-5 py-3 bg-slate-900 border-2 border-slate-600 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition"
                 placeholder="Wpisz wartość..."
@@ -286,7 +286,7 @@ onMounted(() => {
             <div>
               <label class="block text-slate-200 font-semibold mb-3">Pole 3</label>
               <input 
-                v-model="panel2.field3"
+                v-model="store.panels.panel2.field3"
                 type="text" 
                 class="w-full px-5 py-3 bg-slate-900 border-2 border-slate-600 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition"
                 placeholder="Wpisz wartość..."
@@ -305,8 +305,8 @@ onMounted(() => {
             enter-from-class="opacity-0 transform translate-y-2"
             enter-to-class="opacity-100 transform translate-y-0"
           >
-            <div v-if="showResult2" class="mt-8 p-6 bg-gradient-to-r from-cyan-900/40 to-blue-900/40 rounded-xl border border-cyan-600/50">
-              <p class="text-slate-100"><strong class="text-cyan-300">Wynik:</strong> <span class="text-white font-mono text-lg">{{ panel2Result }}</span></p>
+            <div v-if="store.showResult2" class="mt-8 p-6 bg-gradient-to-r from-cyan-900/40 to-blue-900/40 rounded-xl border border-cyan-600/50">
+              <p class="text-slate-100"><strong class="text-cyan-300">Wynik:</strong> <span class="text-white font-mono text-lg">{{ store.panel2Result }}</span></p>
             </div>
           </transition>
         </div>
