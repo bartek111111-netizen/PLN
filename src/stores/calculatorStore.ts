@@ -98,7 +98,7 @@ function buildMiddle(remaining: number, gumColor: string, edgeSpacers: boolean =
       const finalVal = i === numSlots - 1 ? Math.round((spacerSpace - roundedSum) * 10) / 10 : rounded
       roundedSum += finalVal
       layout.push({ type: 'spacers', totalWidth: finalVal })
-      if (i < numSlots - 1) {
+      if (i < numSlots) {
         layout.push({ type: 'gum', size: 20, color: gumColor })
       }
     }
@@ -200,11 +200,40 @@ export const useCalculatorStore = defineStore('calculator', {
         { type: 'knife', size: knifeSize, color: 'gray' }
       ];
 
-      const spacing: LayoutItem[] = [
-        { type: 'spacer', size: knifeSize, color: 'gray' },
-        ...spacingMiddle,
-        { type: 'spacer', size: knifeSize, color: 'gray' }
-      ];
+      const hasGumsInCut = cutMiddle.some(item => item.type === 'gum');
+
+      let spacing: LayoutItem[];
+      if (!hasGumsInCut && width >= 20) {
+        const gumSize = 20;
+        const rem = width - gumSize;
+        const target = rem / 2;
+        
+        let s1 = this.spacers[0];
+        let minDiff = Math.abs(target - s1);
+        for (const s of this.spacers) {
+          const diff = Math.abs(target - s);
+          if (diff < minDiff) {
+            minDiff = diff;
+            s1 = s;
+          }
+        }
+        
+        if (s1 > rem) {
+          s1 = this.spacers.filter(s => s <= rem).sort((a, b) => b - a)[0] || 0;
+        }
+        
+        const s2 = rem - s1;
+        spacing = [];
+        if (s1 > 0) spacing.push({ type: 'spacers', totalWidth: s1 });
+        spacing.push({ type: 'gum', size: gumSize, color: spacingGumColor });
+        if (s2 > 0) spacing.push({ type: 'spacers', totalWidth: s2 });
+      } else {
+        spacing = [
+          { type: 'spacer', size: knifeSize, color: 'gray' },
+          ...spacingMiddle,
+          { type: 'spacer', size: knifeSize, color: 'gray' }
+        ];
+      }
 
       const sumWidth = (layout: LayoutItem[]) =>
         layout.reduce((s, i) => s + (i.size || i.totalWidth || 0), 0);
