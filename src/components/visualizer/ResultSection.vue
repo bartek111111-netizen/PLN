@@ -38,46 +38,31 @@
   <div v-else-if="panel1Result" class="mt-4 p-5 bg-gradient-to-r from-blue-900/40 to-cyan-900/40 rounded-xl">
      <p class="text-slate-100"><strong class="text-blue-300">Wynik:</strong> <span class="text-white font-mono text-lg">{{ panel1Result }}</span></p>
   </div>
-
-  <LayoutDetailsModal 
-    :is-open="isModalOpen" 
-    :layout="selectedLayout"
-    :title="modalTitle"
-    @close="isModalOpen = false"
-  />
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { type CutResult, type LayoutItem } from '../../stores/calculatorStore'
+import { useCalculatorStore } from '../../stores/calculatorStore'
+import { type CutResult } from '../../stores/calculatorStore'
 import LayoutVisualizer from './LayoutVisualizer.vue'
-import LayoutDetailsModal from './LayoutDetailsModal.vue'
 
 const props = defineProps<{
   panel1Result: any
   panel2Result: any
 }>()
 
+const store = useCalculatorStore()
+
 const isCutResult = (res: any): res is CutResult => {
   return res !== null && typeof res === 'object' && 'cut' in res
 }
 
-const isModalOpen = ref(false)
-const selectedLayout = ref<LayoutItem[] | null>(null)
-const modalTitle = ref('')
-
 const openModal = (type: 'cut' | 'spacing') => {
   if (isCutResult(props.panel1Result)) {
     if (type === 'cut') {
-      selectedLayout.value = props.panel1Result.cut
-      modalTitle.value = 'Szczegóły Cięcia'
+      store.openModal(props.panel1Result.cut, 'Szczegóły Cięcia')
     } else {
-      selectedLayout.value = props.panel1Result.spacing
-      modalTitle.value = 'Szczegóły Dystansu Cięcia'
+      store.openModal(props.panel1Result.spacing, 'Szczegóły Dystansu Cięcia')
     }
-    isModalOpen.value = true
   }
 }
 </script>
-
-

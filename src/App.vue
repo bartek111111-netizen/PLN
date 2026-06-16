@@ -50,6 +50,14 @@
     </button>
 
     <QRModal v-if="showQR" :url="appUrl" @close="showQR = false" />
+
+    <!-- Global Modal for Layout Details -->
+    <LayoutDetailsModal 
+      :is-open="store.modal.isOpen" 
+      :layout="store.modal.layout"
+      :title="store.modal.title"
+      @close="store.closeModal()"
+    />
   </div>
 </template>
 
@@ -64,6 +72,7 @@ import MultiCutForm from './components/forms/MultiCutForm.vue'
 import ResultSection from './components/visualizer/ResultSection.vue'
 import Toast from './components/Toast.vue'
 import QRModal from './components/QRModal.vue'
+import LayoutDetailsModal from './components/visualizer/LayoutDetailsModal.vue'
 
 const store = useCalculatorStore()
 const toastStore = useToastStore()

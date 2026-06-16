@@ -23,6 +23,12 @@ export interface CutResult {
   spacingWidth: number
 }
 
+export interface ModalState {
+  isOpen: boolean
+  layout: LayoutItem[] | null
+  title: string
+}
+
 const MIN_SPACER = 1.5
 
 function getSpacerBounds(n: number): { min: number; max: number } {
@@ -131,6 +137,11 @@ export const useCalculatorStore = defineStore('calculator', {
     showResult1: false,
     showResult2: false,
     lastWidth1: null as number | null,
+    modal: {
+      isOpen: false,
+      layout: null as LayoutItem[] | null,
+      title: ''
+    } as ModalState
   }),
 
   actions: {
@@ -150,6 +161,17 @@ export const useCalculatorStore = defineStore('calculator', {
     },
     setPanel2Values(values: PanelState) {
       this.panels.panel2 = { ...values };
+    },
+
+    openModal(layout: LayoutItem[] | null, title: string) {
+      this.modal.isOpen = true;
+      this.modal.layout = layout;
+      this.modal.title = title;
+    },
+    closeModal() {
+      this.modal.isOpen = false;
+      this.modal.layout = null;
+      this.modal.title = '';
     },
 
     calculate(panelNumber: number, values: PanelState) {
