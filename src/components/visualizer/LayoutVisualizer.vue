@@ -3,7 +3,8 @@
     <svg
       :viewBox="`0 0 ${width} 120`"
       :style="{ width: `${width * 4}px`, height: '80px' }"
-      class="bg-slate-900 rounded-lg border border-slate-700"
+      class="bg-slate-900 rounded-lg border border-slate-700 cursor-pointer"
+      @click="$emit('click')"
     >
       <g v-for="(item, index) in getLayout(layout)" :key="`${prefix}-${index}`">
         <rect v-if="item.type === 'knife'" :x="item.position!" y="20" :width="item.width!" height="80" fill="#808080" stroke="#ffffff" stroke-width="1"/>
@@ -25,6 +26,10 @@ const props = defineProps<{
   layout: LayoutItem[] | null
   width: number
   prefix?: string
+}>()
+
+const emit = defineEmits<{
+  (e: 'click'): void
 }>()
 
 const getLayout = (layout: LayoutItem[] | null) => {
