@@ -1,35 +1,41 @@
 <template>
-  <div 
-    v-if="isOpen" 
-    class="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4"
-    @click="$emit('close')"
-  >
+  <Teleport to="body">
     <div 
-      class="w-[350px] max-w-full bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+      v-if="isOpen" 
+      @click="$emit('close')"
     >
-      <div class="p-5 border-b border-slate-700/50 bg-slate-800/50">
-        <h3 class="text-lg font-bold text-white tracking-tight">{{ title || 'Szczegóły układu' }}</h3>
-      </div>
-      
-      <div class="p-5 overflow-y-auto max-h-[50vh]">
-        <ul class="space-y-4">
-          <li v-for="(item, index) in formattedItems" :key="index" class="flex items-start gap-3 group">
-            <span class="flex-shrink-0 w-6 h-6 rounded-full bg-slate-700 text-slate-400 text-[10px] font-bold flex items-center justify-center mt-0.5 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-              {{ index + 1 }}
-            </span>
-            <span class="text-slate-200 text-sm leading-relaxed font-medium">{{ item }}</span>
-          </li>
-          <li v-if="formattedItems.length === 0" class="text-slate-500 italic text-sm text-center py-4">
-            Brak elementów w układzie.
-          </li>
-        </ul>
-      </div>
+      <!-- Black background layer -->
+      <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: #0f172a; z-index: 100000;"></div>
 
-      <div class="p-4 bg-slate-900/30 border-t border-slate-700/50 text-center">
-        <p class="text-slate-500 text-[10px] uppercase tracking-widest font-semibold">Kliknij poza, aby zamknąć</p>
+      <!-- Modal content -->
+      <div 
+        class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] max-w-full bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+        style="z-index: 100001;"
+      >
+        <div class="p-5 border-b border-slate-700/50 bg-slate-800/50">
+          <h3 class="text-lg font-bold text-white tracking-tight">{{ title || 'Szczegóły układu' }}</h3>
+        </div>
+        
+        <div class="p-5 overflow-y-auto max-h-[50vh]">
+          <ul class="space-y-4">
+            <li v-for="(item, index) in formattedItems" :key="index" class="flex items-start gap-3 group">
+              <span class="flex-shrink-0 w-6 h-6 rounded-full bg-slate-700 text-slate-400 text-[10px] font-bold flex items-center justify-center mt-0.5 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                {{ index + 1 }}
+              </span>
+              <span class="text-slate-200 text-sm leading-relaxed font-medium">{{ item }}</span>
+            </li>
+            <li v-if="formattedItems.length === 0" class="text-slate-500 italic text-sm text-center py-4">
+              Brak elementów w układzie.
+            </li>
+          </ul>
+        </div>
+
+        <div class="p-4 bg-slate-900/30 border-t border-slate-700/50 text-center">
+          <p class="text-slate-500 text-[10px] uppercase tracking-widest font-semibold">Kliknij poza, aby zamknąć</p>
+        </div>
       </div>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">

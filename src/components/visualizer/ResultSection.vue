@@ -2,7 +2,7 @@
   <div v-if="isCutResult(panel1Result)" class="mt-4 flex flex-col items-center justify-center w-full gap-6">
     <!-- Cięcie (Cut) -->
     <div class="w-full">
-      <p class="text-slate-200 font-semibold mb-2 text-sm">
+      <p class="text-slate-200 font-semibold mb-2 text-sm text-center">
         Cięcie: <span class="text-blue-300">{{ panel1Result.cutWidth.toFixed(1) }}mm</span>
       </p>
       <div class="flex justify-center">
@@ -17,7 +17,7 @@
 
     <!-- Dystans cięcia (Spacing) -->
     <div class="w-full">
-      <p class="text-slate-200 font-semibold mb-2 text-sm">
+      <p class="text-slate-200 font-semibold mb-2 text-sm text-center">
         Dystans cięcia: <span class="text-cyan-300">{{ panel1Result.spacingWidth.toFixed(1) }}mm</span>
       </p>
       <div class="flex justify-center">

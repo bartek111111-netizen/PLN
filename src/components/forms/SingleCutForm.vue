@@ -50,7 +50,7 @@
     <button
       type="button"
       @click="calculate"
-      class="w-full max-w-[350px] mt-4 px-6 py-3 !bg-gradient-to-r !from-green-400 !to-emerald-500 text-white font-bold text-base rounded-lg shadow-lg shadow-green-500/30 hover:!from-green-500 hover:!to-emerald-600 hover:shadow-green-500/50 transition-all duration-300 transform active:scale-95"
+      class="w-full max-w-[350px] mt-8 px-6 py-3 !bg-gradient-to-r !from-green-400 !to-emerald-500 text-white font-bold text-base rounded-lg shadow-lg shadow-green-500/30 hover:!from-green-500 hover:!to-emerald-600 hover:shadow-green-500/50 transition-all duration-300 transform active:scale-95"
     >
       Oblicz
     </button>

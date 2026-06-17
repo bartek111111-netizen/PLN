@@ -23,3 +23,7 @@ body {
       width: 100%;
     }
 
+.force-black {
+  background-color: #000000 !important;
+  opacity: 1 !important;
+}
