@@ -18,14 +18,24 @@ Ten program służy do obliczania optymalnych konfiguracji noży do maszyn do ci
 ```
 src/
 ├── main.ts                # Punkt startowy aplikacji (Vue + Pinia)
-├── App.vue                # Komponent główny z formularzami i SVG
+├── App.vue                # Komponent główny (orchestrator)
 ├── style.css              # Globalne style + Tailwind
 ├── components/
 │   ├── Toast.vue          # Komponent powiadomień toast
-│   └── QRModal.vue        # Modal z kodem QR
+│   ├── QRModal.vue        # Modal z kodem QR
+│   ├── layout/
+│   │   ├── Header.vue     # Nagłówek aplikacji
+│   │   └── PanelSwitcher.vue  # Przełącznik między panelami
+│   ├── forms/
+│   │   ├── SingleCutForm.vue    # Formularz dla jednego cięcia
+│   │   └── MultiCutForm.vue     # Formularz dla wielu cięć (w przygotowaniu)
+│   └── visualizer/
+│       ├── LayoutVisualizer.vue   # Generowanie SVG z LayoutItem[]
+│       ├── ResultSection.vue      # Kontener dla wizualizacji cięcia i dystansu
+│       └── LayoutDetailsModal.vue # Modal ze szczegółami układu
 ├── stores/
 │   ├── calculatorStore.ts # Logika kalkulacji, układy noży/gum/dystansów
-│   └── toastStore.ts      # Zarządzanie powiadomeniami
+│   └── toastStore.ts      # Zarządzanie powiadomieniami
 ├── validation/
 │    └── panel1Schema.ts   # Schema walidacji Zod dla Panelu 1
 ```

@@ -1,18 +1,17 @@
 <template>
   <div 
     v-if="isOpen" 
-    class="fixed inset-0 z-[9999] bg-black/40 backdrop-blur-md flex justify-center items-start p-4 pt-[20vh]"
+    class="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4"
     @click="$emit('close')"
   >
     <div 
-      class="w-[350px] bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
-      @click.stop
+      class="w-[350px] max-w-full bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
     >
       <div class="p-5 border-b border-slate-700/50 bg-slate-800/50">
         <h3 class="text-lg font-bold text-white tracking-tight">{{ title || 'Szczegóły układu' }}</h3>
       </div>
       
-      <div class="p-5 overflow-y-auto flex-1">
+      <div class="p-5 overflow-y-auto max-h-[50vh]">
         <ul class="space-y-4">
           <li v-for="(item, index) in formattedItems" :key="index" class="flex items-start gap-3 group">
             <span class="flex-shrink-0 w-6 h-6 rounded-full bg-slate-700 text-slate-400 text-[10px] font-bold flex items-center justify-center mt-0.5 group-hover:bg-blue-600 group-hover:text-white transition-colors">
@@ -73,3 +72,4 @@ const formattedItems = computed(() => {
   })
 })
 </script>
+

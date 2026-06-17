@@ -46,13 +46,13 @@ import { type CutResult } from '../../stores/calculatorStore'
 import LayoutVisualizer from './LayoutVisualizer.vue'
 
 const props = defineProps<{
-  panel1Result: any
-  panel2Result: any
+  panel1Result: CutResult | null
+  panel2Result: any // Panel 2 zwraca null, można to poprawić później
 }>()
 
 const store = useCalculatorStore()
 
-const isCutResult = (res: any): res is CutResult => {
+const isCutResult = (res: CutResult | null): res is CutResult => {
   return res !== null && typeof res === 'object' && 'cut' in res
 }
 
@@ -66,3 +66,4 @@ const openModal = (type: 'cut' | 'spacing') => {
   }
 }
 </script>
+

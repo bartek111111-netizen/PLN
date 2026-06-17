@@ -1,9 +1,8 @@
 <template>
-  <div class="flex justify-center">
+  <div class="w-full flex justify-center overflow-x-auto">
     <svg
       :viewBox="`0 0 ${width} 120`"
-      :style="{ width: `${width * 4}px`, height: '80px' }"
-      class="bg-slate-900 rounded-lg border border-slate-700 cursor-pointer"
+      class="w-full max-w-3xl h-[80px] bg-slate-900 rounded-lg border border-slate-700 cursor-pointer"
       @click="$emit('click')"
     >
       <g v-for="(item, index) in getLayout(layout)" :key="`${prefix}-${index}`">
@@ -60,3 +59,4 @@ const getGumColor = (color?: string) => {
   return map[color || 'blue'] || '#3b82f6'
 }
 </script>
+

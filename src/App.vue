@@ -1,27 +1,31 @@
 <template>
-  <div class="min-h-screen flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+  <div class="w-full min-h-screen flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
     <Header />
 
-    <main class="flex-1 max-w-6xl mx-auto w-full px-6 py-12">
+    <main class="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12">
       <PanelSwitcher :current-panel="currentPanel" @switch="switchPanel" />
 
       <!-- Panel 1 -->
-      <div v-if="currentPanel === 1" class="bg-gradient-to-br from-slate-800 to-slate-700 p-10 rounded-2xl shadow-2xl border border-slate-600">
-        <h2 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-blue-300 bg-clip-text text-transparent mb-8">Oblicz 1 cięcie</h2>
-        <SingleCutForm />
+      <div v-if="currentPanel === 1" class="bg-gradient-to-br from-slate-800 to-slate-700 p-6 sm:p-10 rounded-2xl shadow-2xl border border-slate-600">
+        <h2 class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-400 to-blue-300 bg-clip-text text-transparent mb-6 sm:mb-8 text-center">Oblicz 1 cięcie</h2>
+        <div class="flex justify-center">
+          <SingleCutForm />
+        </div>
         <ResultSection :panel1-result="store.panel1Result" :panel2-result="store.panel2Result" />
       </div>
 
       <!-- Panel 2 -->
-      <div v-if="currentPanel === 2" class="bg-gradient-to-br from-slate-800 to-slate-700 p-10 rounded-2xl shadow-2xl border border-slate-600">
-        <h2 class="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-300 bg-clip-text text-transparent mb-8">Oblicz wszystkie cięcia</h2>
-        <MultiCutForm />
+      <div v-if="currentPanel === 2" class="bg-gradient-to-br from-slate-800 to-slate-700 p-6 sm:p-10 rounded-2xl shadow-2xl border border-slate-600">
+        <h2 class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-300 bg-clip-text text-transparent mb-6 sm:mb-8 text-center">Oblicz wszystkie cięcia</h2>
+        <div class="flex justify-center">
+          <MultiCutForm />
+    </div>
         <ResultSection :panel1-result="store.panel1Result" :panel2-result="store.panel2Result" />
       </div>
     </main>
 
     <!-- Toast Container -->
-    <div style="position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; width: 320px;">
+    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 w-[320px] max-w-[calc(100vw-2rem)]">
       <Toast
         v-for="toast in toastStore.toasts"
         :key="toast.id"
@@ -35,25 +39,17 @@
     <!-- QR Button -->
     <button
       @click="showQR = true"
-      class="fixed bottom-[50px] left-[50px] z-[200] p-3 rounded-xl bg-slate-700/80 hover:bg-slate-600/90 transition text-white shadow-lg backdrop-blur-sm"
+      class="fixed bottom-[70px] right-6 z-[200] w-14 h-14 rounded-full bg-slate-700/80 hover:bg-slate-600/90 transition text-white shadow-lg backdrop-blur-sm flex items-center justify-center"
       title="Kod QR"
     >
-      <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="3" width="7" height="7" rx="1"/>
-        <rect x="14" y="3" width="7" height="7" rx="1"/>
-        <rect x="3" y="14" width="7" height="7" rx="1"/>
-        <rect x="15" y="15" width="2" height="2"/>
-        <rect x="19" y="15" width="2" height="2"/>
-        <rect x="15" y="19" width="2" height="2"/>
-        <rect x="19" y="19" width="2" height="2"/>
-      </svg>
+      <span class="text-xs font-bold leading-tight">QR</span>
     </button>
 
     <QRModal v-if="showQR" :url="appUrl" @close="showQR = false" />
 
     <!-- Global Modal for Layout Details -->
-    <LayoutDetailsModal 
-      :is-open="store.modal.isOpen" 
+    <LayoutDetailsModal
+      :is-open="store.modal.isOpen"
       :layout="store.modal.layout"
       :title="store.modal.title"
       @close="store.closeModal()"

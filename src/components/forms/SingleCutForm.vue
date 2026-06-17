@@ -8,7 +8,7 @@
         step="0.1"
         min="20"
         max="1600"
-        class="w-[280px] inline-block px-3 py-1.5 bg-slate-900 border-2 border-slate-600 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+        class="w-full max-w-[280px] px-3 py-1.5 bg-slate-900 border-2 border-slate-600 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
         placeholder="Wpisz wartość (20-1600mm)..."
       >
     </div>
@@ -20,7 +20,7 @@
         step="0.01"
         min="0.5"
         max="7"
-        class="w-[280px] inline-block px-3 py-1.5 bg-slate-900 border-2 border-slate-600 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+        class="w-full max-w-[280px] px-3 py-1.5 bg-slate-900 border-2 border-slate-600 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
         placeholder="Wpisz wartość (0.5-7mm)..."
       >
     </div>
@@ -31,7 +31,7 @@
         @input="store.setGapOverridden(true)"
         type="number"
         step="0.1"
-        class="w-[280px] inline-block px-3 py-1.5 bg-slate-900 border-2 border-slate-600 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+        class="w-full max-w-[280px] px-3 py-1.5 bg-slate-900 border-2 border-slate-600 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
         placeholder="Auto (10% grubości)..."
       >
     </div>
@@ -39,7 +39,7 @@
       <label class="block text-slate-200 font-semibold mb-2 text-sm">Rozmiar noża</label>
       <select 
         v-model="store.panels.panel1.field3"
-        class="w-[280px] inline-block px-3 py-1.5 bg-slate-900 border-2 border-slate-600 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+        class="w-full max-w-[280px] px-3 py-1.5 bg-slate-900 border-2 border-slate-600 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
       >
         <option value="">Wybierz rozmiar...</option>
         <option value="9">9mm</option>
@@ -50,7 +50,7 @@
     <button
       type="button"
       @click="calculate"
-      class="w-[350px] inline-block mt-4 px-6 py-3 !bg-gradient-to-r !from-green-400 !to-emerald-500 text-white font-bold text-base rounded-lg shadow-lg shadow-green-500/30 hover:!from-green-500 hover:!to-emerald-600 hover:shadow-green-500/50 transition-all duration-300 transform active:scale-95"
+      class="w-full max-w-[350px] mt-4 px-6 py-3 !bg-gradient-to-r !from-green-400 !to-emerald-500 text-white font-bold text-base rounded-lg shadow-lg shadow-green-500/30 hover:!from-green-500 hover:!to-emerald-600 hover:shadow-green-500/50 transition-all duration-300 transform active:scale-95"
     >
       Oblicz
     </button>
@@ -83,3 +83,4 @@ const calculate = () => {
   }
 }
 </script>
+

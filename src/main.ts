@@ -1,8 +1,4 @@
 /// <reference types="vite/client" />
-/// <reference types="vite/client" />
-/// <reference types="vite/client" />
-/// <reference types="vite/client" />
-/// <reference types="vite/client" />
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import './style.css'

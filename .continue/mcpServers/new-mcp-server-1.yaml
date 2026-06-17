@@ -1,0 +1,17 @@
+name: New MCP server
+version: 0.0.1
+schema: v1
+maxToolOutputTokens: 2000
+mcpServers:
+  - name: Playwright MCP
+    command: npx
+    args:
+      - -y
+      - "@playwright/mcp@latest"
+    env: {}
+
+  - name: DuckDuckGo MCP
+    command: uvx
+    args:
+      - duckduckgo-mcp-server
+    env: {}
