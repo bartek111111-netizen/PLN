@@ -13,13 +13,13 @@
         style="z-index: 100001;"
       >
         <div class="p-5 border-b border-slate-700/50 bg-slate-800/50">
-          <h3 class="text-lg font-bold text-white tracking-tight">{{ title || 'Szczegóły układu' }}</h3>
+          <h3 class="text-lg font-bold text-white tracking-tight text-center">{{ title || 'Szczegóły układu' }}</h3>
         </div>
         
         <div class="p-5 overflow-y-auto max-h-[50vh]">
           <ul class="space-y-4">
-            <li v-for="(item, index) in formattedItems" :key="index" class="flex items-start gap-3 group">
-              <span class="flex-shrink-0 w-6 h-6 rounded-full bg-slate-700 text-slate-400 text-[10px] font-bold flex items-center justify-center mt-0.5 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+            <li v-for="(item, index) in formattedItems" :key="index" class="flex items-start group">
+              <span class="flex-shrink-0 w-6 h-6 rounded-full bg-slate-700 text-slate-400 text-[10px] font-bold flex items-center justify-center mt-0.5 group-hover:bg-blue-600 group-hover:text-white transition-colors" style="margin-right: 12px;">
                 {{ index + 1 }}
               </span>
               <span class="text-slate-200 text-sm leading-relaxed font-medium">{{ item }}</span>

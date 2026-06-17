@@ -26,3 +26,12 @@
 ## 🎨 UI/UX
 - [ ] Poprawić responsywność wizualizacji SVG na urządzeniach mobilnych
 - [ ] Dodać interaktywność do wizualizacji (np. podgląd parametrów po kliknięciu)
+
+## ✅ Poprawki UI/UX (Sesja dzisiejsza)
+- [x] Naprawiono centrowanie modali (LayoutDetailsModal, QRModal)
+- [x] Naprawiono tło modali (overlay) - zastosowano Teleport i inline styles
+- [x] Poprawiono czytelność modala wizualizacji (odstęp między numeracją a treścią)
+- [x] Wyśrodkowano nagłówki w modalach
+- [x] Zaktualizowano zasady projektu (vue-vite.md) o TypeScript i Tailwind
+
+

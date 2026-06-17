@@ -27,7 +27,7 @@ onMounted(async () => {
 
       <!-- Modal content -->
       <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-800 rounded-2xl p-8 border border-slate-600 shadow-2xl flex flex-col items-center" style="z-index: 100001;">
-        <h3 class="text-white font-bold text-lg mb-4">Zeskanuj QR</h3>
+        <h3 class="text-white font-bold text-lg mb-4 text-center">Zeskanuj QR</h3>
         <canvas ref="canvasRef" class="rounded-lg bg-white" style="width: 280px; height: 280px;" />
         <p class="text-slate-400 text-xs mt-4 break-all">{{ url }}</p>
         <button
