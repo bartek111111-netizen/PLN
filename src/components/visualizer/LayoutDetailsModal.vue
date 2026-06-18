@@ -11,6 +11,7 @@
       <div 
         class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] max-w-full bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
         style="z-index: 100001;"
+        @click.stop
       >
         <div class="p-5 border-b border-slate-700/50 bg-slate-800/50">
           <h3 class="text-lg font-bold text-white tracking-tight text-center">{{ title || 'Szczegóły układu' }}</h3>
