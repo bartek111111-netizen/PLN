@@ -23,22 +23,28 @@ onMounted(async () => {
   <Teleport to="body">
     <div>
       <!-- Black background layer -->
-      <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: #0f172a; z-index: 100000;" @click="emit('close')"></div>
+      <div
+        style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: #0f172a; z-index: 100000;"
+          @click="emit('close')"
+      ></div>
 
       <!-- Modal content -->
-      <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-800 rounded-2xl p-8 border border-slate-600 shadow-2xl flex flex-col items-center" style="z-index: 100001;">
-        <h3 class="text-white font-bold text-lg mb-4 text-center">Zeskanuj QR</h3>
-        <canvas ref="canvasRef" class="rounded-lg bg-white" style="width: 280px; height: 280px;" />
-        <p class="text-slate-400 text-xs mt-4 break-all">{{ url }}</p>
-        <button
-          @click="emit('close')"
-          class="mt-6 px-8 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition"
-        >
-          Zamknij
-      </button>
-    </div>
+      <div
+        class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+        style="z-index: 100001;"
+        @click.stop
+      >
+        <div class="p-5 border-b border-slate-700/50 bg-slate-800/50 flex flex-col items-center">
+          <h3 class="text-lg font-bold text-white tracking-tight text-center">Zeskanuj QR</h3>
+          <canvas ref="canvasRef" class="rounded-lg bg-white mt-4 mb-2" style="width: 280px; height: 280px;" />
+          <p class="text-slate-400 text-xs break-all">{{ url }}</p>
   </div>
+
+        <div class="p-4 bg-slate-900/30 border-t border-slate-700/50 text-center">
+          <p class="text-slate-500 text-[10px] uppercase tracking-widest font-semibold">Kliknij poza, aby zamknąć</p>
+        </div>
+      </div>
+    </div>
   </Teleport>
 </template>
-
 

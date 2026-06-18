@@ -15,6 +15,9 @@
       >
         <div class="p-5 border-b border-slate-700/50 bg-slate-800/50">
           <h3 class="text-lg font-bold text-white tracking-tight text-center">{{ title || 'Szczegóły układu' }}</h3>
+          <p class="text-slate-400 text-sm text-center mt-1">
+            Wymiar: <span class="text-white font-mono">{{ totalWidth.toFixed(1) }}mm</span>
+          </p>
         </div>
         
         <div class="p-5 overflow-y-auto max-h-[50vh]">
@@ -53,6 +56,11 @@ const emit = defineEmits<{
   (e: 'close'): void
 }>()
 
+const totalWidth = computed(() => {
+  if (!props.layout) return 0
+  return props.layout.reduce((sum, item) => sum + (item.size || item.totalWidth || 0), 0)
+})
+  
 const formattedItems = computed(() => {
   if (!props.layout) return []
   
