@@ -47,7 +47,7 @@ import LayoutVisualizer from './LayoutVisualizer.vue'
 
 const props = defineProps<{
   panel1Result: CutResult | null
-  panel2Result: any // Panel 2 zwraca null, można to poprawić później
+  panel2Result: CutResult | null
 }>()
 
 const store = useCalculatorStore()

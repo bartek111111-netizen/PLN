@@ -11,7 +11,7 @@
         <div class="flex justify-center">
           <SingleCutForm />
         </div>
-        <ResultSection :panel1-result="store.panel1Result" :panel2-result="store.panel2Result" />
+        <ResultSection :panel1-result="store.panel1Result" :panel2-result="null" />
       </div>
 
       <!-- Panel 2 -->
@@ -20,7 +20,7 @@
         <div class="flex justify-center">
           <MultiCutForm />
     </div>
-        <ResultSection :panel1-result="store.panel1Result" :panel2-result="store.panel2Result" />
+        <ResultSection :panel1-result="store.panel1Result" :panel2-result="null" />
       </div>
     </main>
 
@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useCalculatorStore } from './stores/calculatorStore'
 import { useToastStore } from './stores/toastStore'
 import Header from './components/layout/Header.vue'
@@ -80,10 +80,6 @@ const appUrl = 'https://bartek111111-netizen.github.io/PLN/'
 const switchPanel = (panelNumber: number) => {
   currentPanel.value = panelNumber
 }
-
-watch(() => store.panels.panel1.field2, () => {
-  store.autoCalculateGap()
-})
 
 onMounted(() => {
   store.loadFromStorage()

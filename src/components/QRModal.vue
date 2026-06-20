@@ -24,14 +24,13 @@ onMounted(async () => {
     <div>
       <!-- Black background layer -->
       <div
-        style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: #0f172a; z-index: 100000;"
-          @click="emit('close')"
+        class="fixed inset-0 bg-slate-900 z-[100000]"
+        @click="emit('close')"
       ></div>
 
       <!-- Modal content -->
       <div
-        class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
-        style="z-index: 100001;"
+        class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100001]"
         @click.stop
       >
         <div class="p-5 border-b border-slate-700/50 bg-slate-800/50 flex flex-col items-center">
