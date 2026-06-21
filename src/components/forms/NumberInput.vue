@@ -1,30 +1,49 @@
 <template>
-  <div class="relative flex items-center">
-    <input
-      :id="id"
-      v-model="displayValue"
-      ref="inputRef"
-      type="number"
-      :step="step"
-      :min="min"
-      :max="max"
-      :placeholder="placeholder"
-      @keydown="handleKeydown"
-      class="w-full max-w-[280px] px-3 py-1.5 pr-16 bg-slate-900 border-2 border-slate-600 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
-    >
-    <div class="absolute right-1.5 flex flex-col gap-0.5">
+  <div class="flex flex-col sm:flex-row gap-2">
+    <div class="relative flex-1">
+      <input
+        :id="id"
+        v-model="displayValue"
+        ref="inputRef"
+        type="number"
+        :step="step"
+        :min="min"
+        :max="max"
+        :placeholder="placeholder"
+        @keydown="handleKeydown"
+        class="w-full px-3 py-1.5 pr-12 bg-slate-900 border-2 border-slate-600 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+      >
+      <span v-if="suffix" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm font-medium">
+        {{ suffix }}
+      </span>
+    </div>
+    <div class="flex gap-2">
       <button
+        ref="plusBtn"
         type="button"
-        @click="increment"
-        class="w-6 h-6 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-slate-200 rounded text-xs font-bold leading-none transition disabled:opacity-40 disabled:cursor-not-allowed"
+        @click.stop="increment"
+        @mousedown.stop="startRepeat('plus')"
+        @mouseup.stop="stopRepeat"
+        @mouseleave.stop="stopRepeat"
+        @touchstart.passive.stop="startRepeat('plus')"
+        @touchend.stop="stopRepeat"
+        @touchcancel.stop="stopRepeat"
+        class="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-lg font-bold transition disabled:opacity-40 disabled:cursor-not-allowed active:bg-slate-500"
         :disabled="isAtMax"
       >
         +
       </button>
       <button
+        ref="minusBtn"
         type="button"
-        @click="decrement"
-        class="w-6 h-6 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-slate-200 rounded text-xs font-bold leading-none transition disabled:opacity-40 disabled:cursor-not-allowed"
+        @click.stop="decrement"
+        @mousedown.stop="startRepeat('minus')"
+        @mouseup.stop="stopRepeat"
+        @mouseleave.stop="stopRepeat"
+        @touchstart.passive.stop="startRepeat('minus')"
+        @touchend.stop="stopRepeat"
+        @touchcancel.stop="stopRepeat"
+        class="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-lg font-bold transition disabled:opacity-40 disabled:cursor-not-allowed active:bg-slate-500"
         :disabled="isAtMin"
       >
         −
@@ -42,17 +61,27 @@ const props = withDefaults(defineProps<{
   max?: string | number
   id?: string
   placeholder?: string
+  decimals?: number  // fixed decimal places (undefined = auto based on step)
+  suffix?: string
 }>(), {
   step: '1',
   min: undefined,
   max: undefined,
   id: undefined,
-  placeholder: undefined
+  placeholder: undefined,
+  decimals: undefined,
+  suffix: undefined
 })
 
 const modelValue = defineModel<string>({ required: true })
 
 const inputRef = ref<HTMLInputElement | null>(null)
+const plusBtn = ref<HTMLButtonElement | null>(null)
+const minusBtn = ref<HTMLButtonElement | null>(null)
+
+// Repeat timer references
+let holdTimer: ReturnType<typeof setTimeout> | null = null
+let repeatInterval: ReturnType<typeof setInterval> | null = null
 
 const numericStep = computed(() => {
   const s = parseFloat(String(props.step).replace(',', '.'))
@@ -77,8 +106,14 @@ const isAtMax = computed(() => {
 })
 
 const formatValue = (val: number): string => {
-  const stepStr = String(props.step).replace(',', '.')
-  const decimals = stepStr.includes('.') ? stepStr.split('.')[1].replace(/0+$/, '').length : 0
+  // Use fixed decimals if specified, otherwise auto-detect from step
+  const decimals = props.decimals ?? (() => {
+    const stepStr = String(props.step).replace(',', '.')
+    if (stepStr.includes('.')) {
+      return stepStr.split('.')[1].replace(/0+$/, '').length
+    }
+    return 0
+  })()
   return val.toFixed(decimals)
 }
 
@@ -93,14 +128,47 @@ const increment = () => {
   if (isAtMax.value) return
   const newVal = currentValue.value + numericStep.value
   modelValue.value = formatValue(newVal)
-  inputRef.value?.focus()
 }
 
 const decrement = () => {
   if (isAtMin.value) return
   const newVal = currentValue.value - numericStep.value
   modelValue.value = formatValue(newVal)
-  inputRef.value?.focus()
+}
+
+const startRepeat = (type: 'plus' | 'minus') => {
+  // Stop any existing repeat first
+  stopRepeat()
+
+  // After 400ms of holding, start the repeat behavior
+  holdTimer = setTimeout(() => {
+    // First increment after hold
+    if (type === 'plus') {
+      increment()
+    } else {
+      decrement()
+    }
+
+    // Then repeat every 50ms
+    repeatInterval = setInterval(() => {
+      if (type === 'plus') {
+        increment()
+      } else {
+        decrement()
+      }
+    }, 50)
+  }, 400)
+}
+
+const stopRepeat = () => {
+  if (holdTimer) {
+    clearTimeout(holdTimer)
+    holdTimer = null
+  }
+  if (repeatInterval) {
+    clearInterval(repeatInterval)
+    repeatInterval = null
+  }
 }
 
 const handleKeydown = (e: KeyboardEvent) => {

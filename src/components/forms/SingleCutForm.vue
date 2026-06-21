@@ -4,10 +4,12 @@
       <label class="block text-slate-200 font-semibold mb-2 text-sm">Jaka szerokość cięcia</label>
       <NumberInput
         v-model="store.panels.panel1.field1"
-        step="0.1"
+        step="0.01"
+        :decimals="2"
         min="20"
         max="1600"
-        placeholder="Wpisz wartość (20-1600mm)..."
+        suffix="mm"
+        placeholder="Wpisz wartość..."
       />
     </div>
     <div>
@@ -17,7 +19,8 @@
         step="0.01"
         min="0.5"
         max="7"
-        placeholder="Wpisz wartość (0.5-7mm)..."
+        suffix="mm"
+        placeholder="Wpisz wartość..."
       />
     </div>
     <div>
@@ -25,6 +28,9 @@
       <NumberInput
         v-model="store.panels.panel1.field4"
         step="0.1"
+        min="0.1"
+        max="3"
+        suffix="mm"
         @input="store.setGapOverridden(true)"
         placeholder="Auto (10% grubości)..."
       />
@@ -65,7 +71,6 @@ const calculate = () => {
   try {
     panel1Schema.parse(store.panels.panel1)
     store.calculate(1, store.panels.panel1)
-    store.saveToStorage()
     toastStore.success('Obliczenia wykonane pomyślnie.', 2500)
   } catch (err) {
     if (err instanceof z.ZodError) {

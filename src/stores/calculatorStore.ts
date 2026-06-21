@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { ref, reactive, watch } from "vue"
+import { ref, reactive, watch, onScopeDispose } from "vue"
 
 interface PanelState {
   field1: string
@@ -166,12 +166,42 @@ export const useCalculatorStore = defineStore("calculator", () => {
     title: ""
   })
 
+  // Autosave with debounce - saves 1s after last change
+  let saveTimeout: ReturnType<typeof setTimeout> | null = null
+
+  const debouncedSave = () => {
+    if (saveTimeout) clearTimeout(saveTimeout)
+    saveTimeout = setTimeout(() => {
+      saveToStorage()
+    }, 1000)
+  }
+
+  // Watch panel1 for changes and trigger autosave
   watch(
-    () => panels.panel1.field2,
+    () => ({ ...panels.panel1 }),
     () => {
       autoCalculateGap()
-    }
+      // Schedule save after autoCalculateGap completes
+      requestAnimationFrame(() => {
+        debouncedSave()
+      })
+    },
+    { deep: true }
   )
+
+  // Watch panel2 for changes and trigger autosave
+  watch(
+    () => ({ ...panels.panel2 }),
+    () => {
+      debouncedSave()
+    },
+    { deep: true }
+  )
+
+  // Cleanup timeout on store dispose
+  onScopeDispose(() => {
+    if (saveTimeout) clearTimeout(saveTimeout)
+  })
 
   function setPanel1Values(values: PanelState) {
     Object.assign(panels.panel1, values)
@@ -193,7 +223,8 @@ export const useCalculatorStore = defineStore("calculator", () => {
       } else if (thickness >= 1.1) {
         gap = 0.2
       } else {
-        gap = 0.2
+        // thickness < 1.1mm - use 0.1 gap
+        gap = 0.1
       }
       panels.panel1.field4 = gap.toFixed(1)
     }

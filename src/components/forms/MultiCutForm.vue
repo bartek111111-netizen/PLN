@@ -44,7 +44,6 @@ const store = useCalculatorStore()
 
 const calculate = () => {
   store.calculate(2, store.panels.panel2)
-  store.saveToStorage()
 }
 </script>
 
