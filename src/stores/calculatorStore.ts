@@ -1,46 +1,69 @@
-import { defineStore } from "pinia"
-import { ref, reactive, watch, onScopeDispose } from "vue"
+import { defineStore } from 'pinia'
+import { ref, reactive, watch, onScopeDispose } from 'vue'
+import {
+  GAP_THRESHOLD_6_1,
+  GAP_THRESHOLD_5_1,
+  GAP_THRESHOLD_4_1,
+  GAP_THRESHOLD_3_1,
+  GAP_THRESHOLD_2_1,
+  GAP_THRESHOLD_1_1,
+  GAP_MIN_VALUE,
+  GAP_MIN_PERCENTAGE,
+  GAP_MAX_PERCENTAGE,
+  MIN_SPACER,
+  SPACER_BOUNDS_2,
+  GUM_YELLOW_THICKNESS,
+  DEFAULT_GUM_SIZE,
+  DEFAULT_GUM_COLOR,
+  DEFAULT_KNIFE_COLOR,
+  DEBOUNCE_SAVE_MS,
+  SPACER_PRESETS,
+} from '../constants'
 
-interface PanelState {
-  field1: string
-  field2: string
-  field3: string
-  field4: string
+// ─── Type Definitions ────────────────────────────────────────────────────────
+
+export interface PanelState {
+  cutWidth: string
+  materialThickness: string
+  knifeSize: string
+  cutGap: string
 }
 
 export interface KnifeItem {
-  type: "knife"
+  type: 'knife'
   size: number
   color: string
 }
 
 export interface GumItem {
-  type: "gum"
+  type: 'gum'
   size: number
   color: string
 }
 
 export interface SpacersItem {
-  type: "spacers"
+  type: 'spacers'
   totalWidth: number
 }
 
 export interface GapItem {
-  type: "gap"
+  type: 'gap'
   size: number
 }
 
 export interface SpacerItem {
-  type: "spacer"
+  type: 'spacer'
   size: number
   color: string
 }
 
 export type LayoutItem = KnifeItem | GumItem | SpacersItem | GapItem | SpacerItem
 
-// Helper: get width of a LayoutItem regardless of type
+// ─── Helper Functions ────────────────────────────────────────────────────────
+
+/** Get width of a LayoutItem regardless of type */
 export function getLayoutItemWidth(item: LayoutItem): number {
-  return item.type === "spacers" ? item.totalWidth : item.size
+  return item.type === 'spacers' ? item.totalWidth : item.size
 }
 
 export interface CutResult {
@@ -56,24 +79,41 @@ export interface ModalState {
   title: string
 }
 
-const MIN_SPACER = 1.5
+// ─── Spacer Bounds ───────────────────────────────────────────────────────────
 
 function getSpacerBounds(n: number): { min: number; max: number } {
   return {
-    min: n <= 2 ? 1.5 : 5,
-    max: n * 14
+    min: n <= SPACER_BOUNDS_2 ? MIN_SPACER : 5,
+    max: n * 14,
   }
 }
 
-function buildMiddle(remaining: number, gumColor: string, edgeSpacers: boolean = true): LayoutItem[] {
+// ─── Middle Layout Builder ───────────────────────────────────────────────────
+
+// Maximum number of gums to try when building middle layout
+const MAX_GUMS = 12
+
+/**
+ * Builds the middle layout (gums + spacers) for a given remaining width.
+ * @param remaining - available width in mm to fill
+ * @param gumColor - color of gums to use
+ * @param edgeSpacers - whether to add spacers on edges
+ */
+function _buildMiddle(
+  remaining: number,
+  gumColor: string,
+  edgeSpacers: boolean = true,
+): LayoutItem[] {
   if (remaining <= 0) return []
 
-  const slotsFor = (n: number) => edgeSpacers ? n + 1 : n - 1
+  const slotsFor = (n: number) => (edgeSpacers ? n + 1 : n - 1)
 
   let bestGums = 0
   const startN = edgeSpacers ? 1 : 2
-  for (let n = startN; n <= 12; n++) {
-    const totalGumWidth = n * 20
+
+  // Find optimal number of gums where spacers fit within bounds
+  for (let n = startN; n <= MAX_GUMS; n++) {
+    const totalGumWidth = n * DEFAULT_GUM_SIZE
     const numSlots = slotsFor(n)
     const spacerSpace = remaining - totalGumWidth
     if (spacerSpace <= 0) continue
@@ -91,9 +131,10 @@ function buildMiddle(remaining: number, gumColor: string, edgeSpacers: boolean =
     }
   }
 
+  // Fallback: find max gums that fit with minimum spacers
   if (bestGums === 0) {
-    for (let n = 12; n >= startN; n--) {
-      const totalGumWidth = n * 20
+    for (let n = MAX_GUMS; n >= startN; n--) {
+      const totalGumWidth = n * DEFAULT_GUM_SIZE
       const numSlots = slotsFor(n)
       if (totalGumWidth + numSlots * MIN_SPACER <= remaining) {
         bestGums = n
@@ -102,12 +143,13 @@ function buildMiddle(remaining: number, gumColor: string, edgeSpacers: boolean =
     }
   }
 
+  // If nothing fits, use a single spacers block
   if (bestGums === 0) {
-    return [{ type: "spacers", totalWidth: remaining }]
+    return [{ type: 'spacers', totalWidth: remaining }]
   }
 
   const numSlots = slotsFor(bestGums)
-  const spacerSpace = remaining - bestGums * 20
+  const spacerSpace = remaining - bestGums * DEFAULT_GUM_SIZE
   const eachSpacer = spacerSpace / numSlots
 
   const layout: LayoutItem[] = []
@@ -116,22 +158,24 @@ function buildMiddle(remaining: number, gumColor: string, edgeSpacers: boolean =
   if (edgeSpacers) {
     for (let i = 0; i < numSlots; i++) {
       const rounded = Math.round(eachSpacer * 10) / 10
-      const finalVal = i === numSlots - 1 ? Math.round((spacerSpace - roundedSum) * 10) / 10 : rounded
+      const finalVal =
+        i === numSlots - 1 ? Math.round((spacerSpace - roundedSum) * 10) / 10 : rounded
       roundedSum += finalVal
-      layout.push({ type: "spacers", totalWidth: finalVal })
+      layout.push({ type: 'spacers', totalWidth: finalVal })
       if (i < bestGums) {
-        layout.push({ type: "gum", size: 20, color: gumColor })
+        layout.push({ type: 'gum', size: DEFAULT_GUM_SIZE, color: gumColor })
       }
     }
   } else {
-    layout.push({ type: "gum", size: 20, color: gumColor })
+    layout.push({ type: 'gum', size: DEFAULT_GUM_SIZE, color: gumColor })
     for (let i = 0; i < numSlots; i++) {
       const rounded = Math.round(eachSpacer * 10) / 10
-      const finalVal = i === numSlots - 1 ? Math.round((spacerSpace - roundedSum) * 10) / 10 : rounded
+      const finalVal =
+        i === numSlots - 1 ? Math.round((spacerSpace - roundedSum) * 10) / 10 : rounded
       roundedSum += finalVal
-      layout.push({ type: "spacers", totalWidth: finalVal })
+      layout.push({ type: 'spacers', totalWidth: finalVal })
       if (i < numSlots) {
-        layout.push({ type: "gum", size: 20, color: gumColor })
+        layout.push({ type: 'gum', size: DEFAULT_GUM_SIZE, color: gumColor })
       }
     }
   }
@@ -139,22 +183,30 @@ function buildMiddle(remaining: number, gumColor: string, edgeSpacers: boolean =
   return layout
 }
 
-export const useCalculatorStore = defineStore("calculator", () => {
+// ─── Pinia Store ─────────────────────────────────────────────────────────────
+
+export const useCalculatorStore = defineStore('calculator', () => {
   const panels = reactive({
-    panel1: { field1: "", field2: "", field3: "", field4: "" } as PanelState,
-    panel2: { field1: "", field2: "", field3: "" } as PanelState
+    panel1: {
+      cutWidth: '',
+      materialThickness: '',
+      knifeSize: '',
+      cutGap: '',
+    } as PanelState,
+    panel2: {
+      cutWidth: '',
+      materialThickness: '',
+      knifeSize: '',
+      cutGap: '',
+    } as PanelState,
   })
+
   const gapOverridden = ref(false)
-  const spacers = ref([
-    1.5, 1.8, 2, 2.05, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6,
-    2.7, 2.8, 2.9, 3, 4, 5, 6, 7, 8, 9,
-    9.15, 9.2, 9.25, 9.3, 9.35, 9.4, 9.45, 9.5, 10, 15,
-    20, 30, 40, 50
-  ])
+  const spacers = ref(SPACER_PRESETS)
   const gums = ref([
-    { size: 20, color: "blue" },
-    { size: 20, color: "red" },
-    { size: 20, color: "yellow" }
+    { size: DEFAULT_GUM_SIZE, color: DEFAULT_GUM_COLOR },
+    { size: DEFAULT_GUM_SIZE, color: 'red' },
+    { size: DEFAULT_GUM_SIZE, color: 'yellow' },
   ])
   const knives = ref([9, 12, 20])
   const panel1Result = ref<CutResult | null>(null)
@@ -163,17 +215,18 @@ export const useCalculatorStore = defineStore("calculator", () => {
   const modal = ref<ModalState>({
     isOpen: false,
     layout: null,
-    title: ""
+    title: '',
   })
 
-  // Autosave with debounce - saves 1s after last change
+  // ─── Autosave with debounce ──────────────────────────────────────────────
+
   let saveTimeout: ReturnType<typeof setTimeout> | null = null
 
   const debouncedSave = () => {
     if (saveTimeout) clearTimeout(saveTimeout)
     saveTimeout = setTimeout(() => {
       saveToStorage()
-    }, 1000)
+    }, DEBOUNCE_SAVE_MS)
   }
 
   // Watch panel1 for changes and trigger autosave
@@ -186,7 +239,7 @@ export const useCalculatorStore = defineStore("calculator", () => {
         debouncedSave()
       })
     },
-    { deep: true }
+    { deep: true },
   )
 
   // Watch panel2 for changes and trigger autosave
@@ -195,7 +248,7 @@ export const useCalculatorStore = defineStore("calculator", () => {
     () => {
       debouncedSave()
     },
-    { deep: true }
+    { deep: true },
   )
 
   // Cleanup timeout on store dispose
@@ -203,30 +256,40 @@ export const useCalculatorStore = defineStore("calculator", () => {
     if (saveTimeout) clearTimeout(saveTimeout)
   })
 
+  // ─── Panel Value Setters ─────────────────────────────────────────────────
+
   function setPanel1Values(values: PanelState) {
     Object.assign(panels.panel1, values)
   }
 
+  function setPanel2Values(values: PanelState) {
+    Object.assign(panels.panel2, values)
+  }
+
+  // ─── Auto Gap Calculation ────────────────────────────────────────────────
+
   function autoCalculateGap() {
     gapOverridden.value = false
-    const thickness = parseFloat(String(panels.panel1.field2).replace(",", "."))
+    const thickness = parseFloat(String(panels.panel1.materialThickness).replace(',', '.'))
     if (Number.isFinite(thickness) && thickness > 0) {
       let gap: number
-      if (thickness >= 6.1) {
+      if (thickness >= GAP_THRESHOLD_6_1) {
+        gap = 0.7
+      } else if (thickness >= GAP_THRESHOLD_5_1) {
         gap = 0.6
-      } else if (thickness >= 5.1) {
+      } else if (thickness >= GAP_THRESHOLD_4_1) {
         gap = 0.5
-      } else if (thickness >= 4.1) {
+      } else if (thickness >= GAP_THRESHOLD_3_1) {
         gap = 0.4
-      } else if (thickness >= 2.1) {
+      } else if (thickness >= GAP_THRESHOLD_2_1) {
         gap = 0.3
-      } else if (thickness >= 1.1) {
+      } else if (thickness >= GAP_THRESHOLD_1_1) {
         gap = 0.2
       } else {
-        // thickness < 1.1mm - use 0.1 gap
-        gap = 0.1
+        // thickness < 1.1mm - use minimum gap
+        gap = GAP_MIN_VALUE
       }
-      panels.panel1.field4 = gap.toFixed(1)
+      panels.panel1.cutGap = gap.toFixed(1)
     }
   }
 
@@ -234,9 +297,7 @@ export const useCalculatorStore = defineStore("calculator", () => {
     gapOverridden.value = overridden
   }
 
-  function setPanel2Values(values: PanelState) {
-    Object.assign(panels.panel2, values)
-  }
+  // ─── Modal ───────────────────────────────────────────────────────────────
 
   function openModal(layout: LayoutItem[] | null, title: string) {
     modal.value.isOpen = true
@@ -247,35 +308,52 @@ export const useCalculatorStore = defineStore("calculator", () => {
   function closeModal() {
     modal.value.isOpen = false
     modal.value.layout = null
-    modal.value.title = ""
+    modal.value.title = ''
   }
 
-  function calculate(panelNumber: number, values: PanelState) {
+  // ─── Main Calculate Entry ────────────────────────────────────────────────
+
+  function calculate(panelNumber: number, values: PanelState): CutResult | void {
     if (panelNumber === 1) {
       const result = calculatePanel1(values)
       panel1Result.value = result
       showResult1.value = true
       return result
     }
+    if (panelNumber === 2) {
+      // Panel 2 calculation placeholder
+      return undefined
+    }
   }
 
+  // ─── Panel 1 Calculation ─────────────────────────────────────────────────
+
   function calculatePanel1(values: PanelState): CutResult {
-    const width = parseFloat(values.field1)
-    const thickness = parseFloat(values.field2)
-    const knifeSize = parseFloat(values.field3)
-    const gap = parseFloat(values.field4)
+    const width = parseFloat(values.cutWidth)
+    const thickness = parseFloat(values.materialThickness)
+    const knifeSize = parseFloat(values.knifeSize)
+    const gap = parseFloat(values.cutGap)
     lastWidth1.value = width
 
-    const minGap = Math.round(thickness * 0.05 * 10) / 10
-    const maxGap = Math.round(thickness * 0.8 * 10) / 10
+    const minGap = Math.round(thickness * GAP_MIN_PERCENTAGE * 10) / 10
+    const maxGap = Math.round(thickness * GAP_MAX_PERCENTAGE * 10) / 10
+
     if (gap < minGap) {
       throw new Error(
-        "Szczelina cięcia (" + gap + "mm) nie może być mniejsza niż 5% grubości materiału (" + minGap + "mm)."
+        'Szczelina cięcia (' +
+          gap +
+          'mm) nie może być mniejsza niż 5% grubości materiału (' +
+          minGap +
+          'mm).',
       )
     }
     if (gap > maxGap) {
       throw new Error(
-        "Szczelina cięcia (" + gap + "mm) nie może być większa niż 80% grubości materiału (" + maxGap + "mm)."
+        'Szczelina cięcia (' +
+          gap +
+          'mm) nie może być większa niż 80% grubości materiału (' +
+          maxGap +
+          'mm).',
       )
     }
 
@@ -283,85 +361,105 @@ export const useCalculatorStore = defineStore("calculator", () => {
 
     if (cutWidth < knifeSize * 2) {
       throw new Error(
-        "Szerokość cięcia (" + width + "mm) za mała dla dwóch noży (" + knifeSize + "mm) i szczeliny (" + gap + "mm). Cięcie (" + cutWidth.toFixed(1) + "mm) musi mieścić 2 noże. Wymagane minimum: " + (knifeSize * 2 + gap).toFixed(1) + "mm."
+        'Szerokość cięcia (' +
+          width +
+          'mm) za mała dla dwóch noży (' +
+          knifeSize +
+          'mm) i szczeliny (' +
+          gap +
+          'mm). Cięcie (' +
+          cutWidth.toFixed(1) +
+          'mm) musi mieścić 2 noże. Wymagane minimum: ' +
+          (knifeSize * 2 + gap).toFixed(1) +
+          'mm.',
       )
     }
 
-    const spacingGumColor = thickness >= 4 ? "yellow" : "red"
+    const spacingGumColor = thickness >= GUM_YELLOW_THICKNESS ? 'yellow' : 'red'
 
-    const cutMiddle = buildMiddle(cutWidth - knifeSize * 2, "blue", false)
-    const spacingMiddle = buildMiddle(width - knifeSize * 2, spacingGumColor, false)
+    const cutMiddle = _buildMiddle(cutWidth - knifeSize * 2, DEFAULT_GUM_COLOR, false)
+    const spacingMiddle = _buildMiddle(width - knifeSize * 2, spacingGumColor, false)
 
     const cut: LayoutItem[] = [
-      { type: "knife", size: knifeSize, color: "gray" },
+      { type: 'knife', size: knifeSize, color: DEFAULT_KNIFE_COLOR },
       ...cutMiddle,
-      { type: "knife", size: knifeSize, color: "gray" }
+      { type: 'knife', size: knifeSize, color: DEFAULT_KNIFE_COLOR },
     ]
 
-    const hasGumsInCut = cutMiddle.some(item => item.type === "gum")
+    const hasGumsInCut = cutMiddle.some((item) => item.type === 'gum')
 
     let spacing: LayoutItem[]
     if (!hasGumsInCut && width >= 20) {
-      const gumSize = 20
-      const rem = width - gumSize
-      const target = rem / 2
+      const gumSize = DEFAULT_GUM_SIZE
+      const remainingWidth = width - gumSize
+      const targetWidth = remainingWidth / 2
 
-      let s1 = spacers.value[0]
-      let minDiff = Math.abs(target - s1)
-      for (const s of spacers.value) {
-        const diff = Math.abs(target - s)
-        if (diff < minDiff) {
-          minDiff = diff
-          s1 = s
+      // Find the closest spacer value to the target width
+      let leftSpacerWidth = spacers.value[0]
+      let minDifference = Math.abs(targetWidth - leftSpacerWidth)
+      for (const spacerValue of spacers.value) {
+        const difference = Math.abs(targetWidth - spacerValue)
+        if (difference < minDifference) {
+          minDifference = difference
+          leftSpacerWidth = spacerValue
         }
       }
 
-      if (s1 > rem) {
-        s1 = spacers.value.filter(s => s <= rem).sort((a, b) => b - a)[0] ?? 0
+      // Ensure leftSpacerWidth doesn't exceed remaining width
+      if (leftSpacerWidth > remainingWidth) {
+        const validSpacers = spacers.value.filter((spacerValue) => spacerValue <= remainingWidth)
+        leftSpacerWidth = validSpacers.length > 0 ? validSpacers[validSpacers.length - 1] : 0
       }
 
-      const s2 = rem - s1
+      const rightSpacerWidth = remainingWidth - leftSpacerWidth
       spacing = []
-      if (s1 > 0) spacing.push({ type: "spacers", totalWidth: s1 })
-      spacing.push({ type: "gum", size: gumSize, color: spacingGumColor })
-      if (s2 > 0) spacing.push({ type: "spacers", totalWidth: s2 })
+      if (leftSpacerWidth > 0) spacing.push({ type: 'spacers', totalWidth: leftSpacerWidth })
+      spacing.push({ type: 'gum', size: gumSize, color: spacingGumColor })
+      if (rightSpacerWidth > 0) spacing.push({ type: 'spacers', totalWidth: rightSpacerWidth })
     } else {
       spacing = [
-        { type: "spacer", size: knifeSize, color: "gray" },
+        { type: 'spacer', size: knifeSize, color: DEFAULT_KNIFE_COLOR },
         ...spacingMiddle,
-        { type: "spacer", size: knifeSize, color: "gray" }
+        { type: 'spacer', size: knifeSize, color: DEFAULT_KNIFE_COLOR },
       ]
     }
 
-    const sumWidth = (layout: LayoutItem[]) =>
-      layout.reduce((s, i) => s + getLayoutItemWidth(i), 0)
+    const sumWidth = (layout: LayoutItem[]) => layout.reduce((s, i) => s + getLayoutItemWidth(i), 0)
 
     return {
       cut,
       spacing,
       cutWidth: sumWidth(cut),
-      spacingWidth: sumWidth(spacing)
+      spacingWidth: sumWidth(spacing),
     }
   }
 
+  // ─── Storage ─────────────────────────────────────────────────────────────
+
   function saveToStorage() {
     try {
-      localStorage.setItem("slittingCalc", JSON.stringify(panels))
-    } catch {
-      // localStorage unavailable
+      localStorage.setItem('slittingCalc', JSON.stringify(panels))
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to save calculator state to localStorage:', error)
+      }
     }
   }
 
   function loadFromStorage() {
     try {
-      const saved = localStorage.getItem("slittingCalc")
+      const saved = localStorage.getItem('slittingCalc')
       if (saved) {
         const data = JSON.parse(saved)
         if (data?.panel1) Object.assign(panels.panel1, data.panel1)
         if (data?.panel2) Object.assign(panels.panel2, data.panel2)
       }
-    } catch {
-      // corrupted data or localStorage unavailable
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to load calculator state from localStorage:', error)
+      }
     }
   }
 
@@ -384,6 +482,6 @@ export const useCalculatorStore = defineStore("calculator", () => {
     calculate,
     calculatePanel1,
     saveToStorage,
-    loadFromStorage
+    loadFromStorage,
   }
 })

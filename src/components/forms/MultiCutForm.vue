@@ -1,49 +1,84 @@
 <template>
-  <form @submit.prevent class="space-y-6">
+  <form class="space-y-3" @submit.prevent>
     <div>
-      <label class="block text-slate-200 font-semibold mb-3">Pole 1</label>
-      <input 
-        v-model="store.panels.panel2.field1"
-        type="text" 
-        class="w-full max-w-[280px] px-5 py-3 bg-slate-900 border-2 border-slate-600 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition"
-        placeholder="Wpisz wartość..."
-      >
+      <label class="block text-slate-200 font-semibold mb-2 text-sm">{{ LABEL_CUT_WIDTH }}</label>
+      <NumberInput
+        v-model="store.panels.panel2.cutWidth"
+        step="0.01"
+        :decimals="2"
+        :min="MIN_CUT_WIDTH"
+        :max="MAX_CUT_WIDTH"
+        suffix="mm"
+        :placeholder="LABEL_CUT_WIDTH_PLACEHOLDER"
+      />
     </div>
     <div>
-      <label class="block text-slate-200 font-semibold mb-3">Pole 2</label>
-      <input 
-        v-model="store.panels.panel2.field2"
-        type="text" 
-        class="w-full max-w-[280px] px-5 py-3 bg-slate-900 border-2 border-slate-600 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition"
-        placeholder="Wpisz wartość..."
-      >
+      <label class="block text-slate-200 font-semibold mb-2 text-sm">
+        {{ LABEL_MATERIAL_THICKNESS }}
+      </label>
+      <NumberInput
+        v-model="store.panels.panel2.materialThickness"
+        step="0.01"
+        :decimals="2"
+        :min="MIN_MATERIAL_THICKNESS"
+        :max="MAX_MATERIAL_THICKNESS"
+        suffix="mm"
+        :placeholder="LABEL_CUT_WIDTH_PLACEHOLDER"
+      />
     </div>
     <div>
-      <label class="block text-slate-200 font-semibold mb-3">Pole 3</label>
-      <input 
-        v-model="store.panels.panel2.field3"
-        type="text" 
-        class="w-full max-w-[280px] px-5 py-3 bg-slate-900 border-2 border-slate-600 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition"
-        placeholder="Wpisz wartość..."
+      <label class="block text-slate-200 font-semibold mb-2 text-sm">{{ LABEL_KNIFE_SIZE }}</label>
+      <select
+        v-model="store.panels.panel2.knifeSize"
+        class="w-full max-w-[280px] px-3 py-1.5 bg-slate-900 border-2 border-slate-600 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
       >
+        <option value="">
+          {{ LABEL_SELECT_SIZE }}
+        </option>
+        <option v-for="size in KNIFE_SIZES" :key="size" :value="String(size)">{{ size }}mm</option>
+      </select>
     </div>
     <button
       type="button"
+      class="w-full max-w-[350px] mt-8 px-6 py-3 bg-gradient-to-r from-green-400 to-emerald-500 text-white font-bold text-base rounded-2xl shadow-lg shadow-green-500/30 hover:from-green-500 hover:to-emerald-600 hover:shadow-green-500/50 transition-all duration-300 transform active:scale-95"
       @click="calculate"
-      class="w-full max-w-[350px] mt-12 px-6 py-4 bg-gradient-to-r from-green-400 to-emerald-500 text-white font-bold text-base rounded-2xl shadow-lg shadow-green-500/30 hover:from-green-500 hover:to-emerald-600 hover:shadow-green-500/50 transition-all duration-300 transform active:scale-95"
     >
-      Oblicz
+      {{ UI_CALCULATE_BUTTON }}
     </button>
   </form>
 </template>
 
 <script setup lang="ts">
 import { useCalculatorStore } from '../../stores/calculatorStore'
+import { useToastStore } from '../../stores/toastStore'
+import { panel2Schema } from '../../validation/panel1Schema'
+import {
+  LABEL_CUT_WIDTH,
+  LABEL_MATERIAL_THICKNESS,
+  LABEL_CUT_GAP,
+  LABEL_KNIFE_SIZE,
+  LABEL_SELECT_SIZE,
+  LABEL_CUT_WIDTH_PLACEHOLDER,
+  MIN_CUT_WIDTH,
+  MAX_CUT_WIDTH,
+  MIN_MATERIAL_THICKNESS,
+  MAX_MATERIAL_THICKNESS,
+  MIN_CUT_GAP,
+  KNIFE_SIZES,
+  UI_CALCULATE_BUTTON,
+} from '../../constants'
+import { handleValidationError } from '../../utils/errorHandler'
+import NumberInput from './NumberInput.vue'
 
 const store = useCalculatorStore()
+const toastStore = useToastStore()
 
 const calculate = () => {
-  store.calculate(2, store.panels.panel2)
+  try {
+    panel2Schema.parse(store.panels.panel2)
+    store.calculate(2, store.panels.panel2)
+  } catch (err) {
+    handleValidationError(err, toastStore)
+  }
 }
 </script>
-

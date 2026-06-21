@@ -13,7 +13,12 @@ let fadeTimer: ReturnType<typeof setTimeout> | null = null
 
 onMounted(() => {
   // Start fade-out 1s before removal
-  fadeTimer = setTimeout(() => { opacity.value = 0 }, Math.max(0, props.duration - 1000))
+  fadeTimer = setTimeout(
+    () => {
+      opacity.value = 0
+    },
+    Math.max(0, props.duration - 1000),
+  )
 })
 
 onUnmounted(() => {
@@ -22,9 +27,11 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="toast text-center px-5 py-3 shadow-2xl border border-white/10 animate-slide-in transition-opacity duration-1000"
+  <div
+    class="toast text-center px-5 py-3 shadow-2xl border border-white/10 animate-slide-in transition-opacity duration-1000"
     :data-type="type"
-    :style="{ opacity: opacity }">
+    :style="{ opacity: opacity }"
+  >
     <span class="text-sm font-medium">{{ message }}</span>
   </div>
 </template>
@@ -36,20 +43,23 @@ onUnmounted(() => {
   border-radius: 0.75rem;
 }
 
-.toast[data-type="success"] {
+.toast[data-type='success'] {
   background-color: #16a34a;
 }
 
-.toast[data-type="warning"] {
+.toast[data-type='warning'] {
   background-color: #eab308;
-    color: #0f172a;
-  }
+  color: #0f172a;
+}
 @keyframes slide-in {
-  from { transform: translateY(-12px); }
-  to   { transform: translateY(0); }
+  from {
+    transform: translateY(-12px);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 .animate-slide-in {
   animation: slide-in 0.25s ease-out;
 }
 </style>
-

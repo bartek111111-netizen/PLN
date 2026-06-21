@@ -9,16 +9,72 @@
     >
       <g v-for="(item, index) in scaledLayout" :key="`${prefix}-${index}-${item.position}`">
         <!-- Knife -->
-        <rect v-if="item.type === 'knife'" :x="item.position" y="20" :width="item.width" height="80" :fill="getColor(item)" stroke="#ffffff" stroke-width="1"/>
-        <text v-if="item.type === 'knife'" :x="item.position! + item.width! / 2" y="65" text-anchor="middle" fill="#ffffff" font-size="8">K{{ item.size }}</text>
+        <rect
+          v-if="item.type === 'knife'"
+          :x="item.position"
+          y="20"
+          :width="item.width"
+          height="80"
+          :fill="getColor(item)"
+          stroke="#ffffff"
+          stroke-width="1"
+        />
+        <text
+          v-if="item.type === 'knife'"
+          :x="item.position! + item.width! / 2"
+          y="65"
+          text-anchor="middle"
+          fill="#ffffff"
+          font-size="8"
+        >
+          K{{ item.size }}
+        </text>
 
         <!-- Gum -->
-        <rect v-if="item.type === 'gum'" :x="item.position" y="25" :width="item.width" height="70" :fill="getColor(item)" stroke="#ffffff" stroke-width="1" opacity="0.8"/>
-        <text v-if="item.type === 'gum'" :x="item.position! + item.width! / 2" y="65" text-anchor="middle" fill="#ffffff" font-size="8">G{{ item.size }}</text>
+        <rect
+          v-if="item.type === 'gum'"
+          :x="item.position"
+          y="25"
+          :width="item.width"
+          height="70"
+          :fill="getColor(item)"
+          stroke="#ffffff"
+          stroke-width="1"
+          opacity="0.8"
+        />
+        <text
+          v-if="item.type === 'gum'"
+          :x="item.position! + item.width! / 2"
+          y="65"
+          text-anchor="middle"
+          fill="#ffffff"
+          font-size="8"
+        >
+          G{{ item.size }}
+        </text>
 
         <!-- Spacer / Spacers -->
-        <rect v-if="['spacer', 'spacers'].includes(item.type)" :x="item.position" y="35" :width="item.width" height="50" :fill="getColor(item)" stroke="#ffffff" stroke-width="1" opacity="0.7"/>
-        <text v-if="['spacer', 'spacers'].includes(item.type)" :x="item.position! + item.width! / 2" y="65" text-anchor="middle" fill="#ffffff" font-size="8">D{{ item.type === 'spacers' ? item.totalWidth : item.size }}</text>
+        <rect
+          v-if="['spacer', 'spacers'].includes(item.type)"
+          :x="item.position"
+          y="35"
+          :width="item.width"
+          height="50"
+          :fill="getColor(item)"
+          stroke="#ffffff"
+          stroke-width="1"
+          opacity="0.7"
+        />
+        <text
+          v-if="['spacer', 'spacers'].includes(item.type)"
+          :x="item.position! + item.width! / 2"
+          y="65"
+          text-anchor="middle"
+          fill="#ffffff"
+          font-size="8"
+        >
+          D{{ item.type === 'spacers' ? item.totalWidth : item.size }}
+        </text>
       </g>
     </svg>
   </div>
@@ -45,7 +101,7 @@ const ELEMENT_COLORS: Record<string, string> = {
   spacer: '#a0a0a0',
   spacers: '#a0a0a0',
   gap: '#ffffff',
-  default: '#cccccc'
+  default: '#cccccc',
 }
 
 const getColor = (item: LayoutItem) => {
@@ -63,7 +119,7 @@ const getGumColor = (color?: string) => {
     blue: '#3b82f6',
     red: '#ef4444',
     yellow: '#eab308',
-    gray: '#808080'
+    gray: '#808080',
   }
   return map[color || 'blue'] || ELEMENT_COLORS.gum
 }
@@ -78,11 +134,11 @@ const scaledLayout = computed(() => {
 
   let position = 0
 
-  return props.layout.map(item => {
+  return props.layout.map((item) => {
     const scaled: ScaledLayoutItem = {
       ...item,
       position,
-      width: 0
+      width: 0,
     }
 
     scaled.width = getLayoutItemWidth(item)
@@ -91,4 +147,3 @@ const scaledLayout = computed(() => {
   })
 })
 </script>
-
