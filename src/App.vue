@@ -3,7 +3,11 @@
     <Header />
 
     <main class="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12">
-      <PanelSwitcher :current-panel="currentPanel" @switch="switchPanel" />
+      <div class="sticky top-0 z-[100] -mt-8 sm:-mt-12 flex justify-center px-4 sm:px-6 py-6">
+        <div class="rounded-2xl border border-slate-600 shadow-2xl bg-slate-900/95 backdrop-blur-sm px-4 py-4">
+          <PanelSwitcher :current-panel="currentPanel" @switch="switchPanel" />
+        </div>
+      </div>
 
       <!-- Panel 1 -->
       <div v-if="currentPanel === 1" class="bg-gradient-to-br from-slate-800 to-slate-700 p-6 sm:p-10 rounded-2xl shadow-2xl border border-slate-600">

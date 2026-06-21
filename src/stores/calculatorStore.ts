@@ -181,7 +181,20 @@ export const useCalculatorStore = defineStore("calculator", () => {
     gapOverridden.value = false
     const thickness = parseFloat(String(panels.panel1.field2).replace(",", "."))
     if (Number.isFinite(thickness) && thickness > 0) {
-      const gap = Math.round(thickness * 0.1 * 10) / 10
+      let gap: number
+      if (thickness >= 6.1) {
+        gap = 0.6
+      } else if (thickness >= 5.1) {
+        gap = 0.5
+      } else if (thickness >= 4.1) {
+        gap = 0.4
+      } else if (thickness >= 2.1) {
+        gap = 0.3
+      } else if (thickness >= 1.1) {
+        gap = 0.2
+      } else {
+        gap = 0.2
+      }
       panels.panel1.field4 = gap.toFixed(1)
     }
   }
