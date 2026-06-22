@@ -215,11 +215,11 @@ body {
 }
 
 .modal-list-item {
-  @apply flex items-start group;
+  @apply flex items-start;
 }
 
 .modal-list-item-badge {
-  @apply flex-shrink-0 w-6 h-6 rounded-full bg-slate-700 text-slate-400 text-[10px] font-bold flex items-center justify-center mt-0.5 group-hover:bg-blue-600 group-hover:text-white transition-colors;
+  @apply flex-shrink-0 w-6 h-6 rounded-full bg-slate-700 text-slate-400 text-[10px] font-bold flex items-center justify-center mt-0.5 transition-colors;
 }
 
 .modal-list-item-text {
