@@ -1,15 +1,15 @@
 <template>
   <div
     v-if="isCutResult(panel1Result)"
-    class="mt-4 flex flex-col items-center justify-center w-full gap-6"
+    class="cut-result-container"
   >
     <!-- Cięcie (Cut) -->
     <div class="w-full">
-      <p class="text-slate-200 font-semibold mb-2 text-sm text-center">
+      <p class="cut-result-label">
         Cięcie:
-        <span class="text-blue-300">{{ panel1Result.cutWidth.toFixed(1) }}mm</span>
+        <span class="cut-result-value">{{ panel1Result.cutWidth.toFixed(1) }}mm</span>
       </p>
-      <div class="flex justify-center">
+      <div class="flex-center">
         <LayoutVisualizer
           :layout="panel1Result.cut"
           :width="panel1Result.cutWidth"
@@ -21,11 +21,11 @@
 
     <!-- Dystans cięcia (Spacing) -->
     <div class="w-full">
-      <p class="text-slate-200 font-semibold mb-2 text-sm text-center">
+      <p class="cut-result-label">
         Dystans cięcia:
-        <span class="text-cyan-300">{{ panel1Result.spacingWidth.toFixed(1) }}mm</span>
+        <span class="spacing-result-value">{{ panel1Result.spacingWidth.toFixed(1) }}mm</span>
       </p>
-      <div class="flex justify-center">
+      <div class="flex-center">
         <LayoutVisualizer
           :layout="panel1Result.spacing"
           :width="panel1Result.spacingWidth"
@@ -38,21 +38,21 @@
 
   <div
     v-else-if="panel2Result"
-    class="mt-4 p-5 bg-gradient-to-r from-cyan-900/40 to-blue-900/40 rounded-xl"
+    class="result-card-alt"
   >
-    <p class="text-slate-100">
-      <strong class="text-cyan-300">Wynik:</strong>
-      <span class="text-white font-mono text-lg">{{ panel2Result }}</span>
+    <p class="result-label">
+      <strong class="result-strong-alt">Wynik:</strong>
+      <span class="result-value">{{ panel2Result }}</span>
     </p>
   </div>
 
   <div
     v-else-if="panel1Result"
-    class="mt-4 p-5 bg-gradient-to-r from-blue-900/40 to-cyan-900/40 rounded-xl"
+    class="result-card"
   >
-    <p class="text-slate-100">
-      <strong class="text-blue-300">Wynik:</strong>
-      <span class="text-white font-mono text-lg">{{ panel1Result }}</span>
+    <p class="result-label">
+      <strong class="result-strong">Wynik:</strong>
+      <span class="result-value">{{ panel1Result }}</span>
     </p>
   </div>
 </template>

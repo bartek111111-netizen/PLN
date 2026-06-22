@@ -2,45 +2,45 @@
   <Teleport to="body">
     <div v-if="isOpen" @click="$emit('close')">
       <!-- Black background layer -->
-      <div class="fixed inset-0 bg-slate-900 z-[100000]" />
+      <div class="modal-backdrop" />
 
       <!-- Modal content -->
       <div
-        class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] max-w-full bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100001]"
+        class="modal-content"
         @click.stop
       >
-        <div class="p-5 border-b border-slate-700/50 bg-slate-800/50">
-          <h3 class="text-lg font-bold text-white tracking-tight text-center">
+        <div class="modal-header">
+          <h3 class="modal-title">
             {{ title || 'Szczegóły układu' }}
           </h3>
-          <p class="text-slate-400 text-sm text-center mt-1">
+          <p class="modal-subtitle">
             Wymiar:
-            <span class="text-white font-mono">{{ totalWidth.toFixed(1) }}mm</span>
+            <span class="modal-subtitle-value">{{ totalWidth.toFixed(1) }}mm</span>
           </p>
         </div>
 
-        <div class="p-5 overflow-y-auto max-h-[50vh]">
-          <ul class="space-y-4">
-            <li v-for="(item, index) in formattedItems" :key="index" class="flex items-start group">
+        <div class="modal-body">
+          <ul class="modal-list">
+            <li v-for="(item, index) in formattedItems" :key="index" class="modal-list-item">
               <span
-                class="flex-shrink-0 w-6 h-6 rounded-full bg-slate-700 text-slate-400 text-[10px] font-bold flex items-center justify-center mt-0.5 group-hover:bg-blue-600 group-hover:text-white transition-colors"
+                class="modal-list-item-badge"
                 style="margin-right: 12px"
               >
                 {{ index + 1 }}
               </span>
-              <span class="text-slate-200 text-sm leading-relaxed font-medium">{{ item }}</span>
+              <span class="modal-list-item-text">{{ item }}</span>
             </li>
             <li
               v-if="formattedItems.length === 0"
-              class="text-slate-500 italic text-sm text-center py-4"
+              class="modal-empty-text"
             >
               Brak elementów w układzie.
             </li>
           </ul>
         </div>
 
-        <div class="p-4 bg-slate-900/30 border-t border-slate-700/50 text-center">
-          <p class="text-slate-500 text-[10px] uppercase tracking-widest font-semibold">
+        <div class="modal-footer">
+          <p class="modal-footer-text">
             Kliknij poza, aby zamknąć
           </p>
         </div>
@@ -70,9 +70,9 @@ const totalWidth = computed(() => {
 })
 
 const formattedItems = computed(() => {
-  if (!props.layout) return []
+  if (!props.layout || props.layout.length === 0) return []
 
-  return props.layout.map((item) => {
+  return props.layout.map((item: LayoutItem) => {
     const width = getLayoutItemWidth(item)
     const widthStr = `${width.toFixed(1)}mm`
 

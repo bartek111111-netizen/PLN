@@ -4,41 +4,32 @@ Ten program służy do obliczania optymalnych konfiguracji noży do maszyn do ci
 
 ## 🚀 Technologie
 
+### Podstawowe
+
 * **[Vue.js 3](https://vuejs.org/)** - Framework JavaScript do budowy interfejsu użytkownika.
-* **[Vite](https://vitejs.dev/)** - Szybkie narzędzie do budowania i serwowania aplikacji.
 * **[TypeScript](https://www.typescriptlang.org/)** - Typowanie statyczne w całym projekcie (strict mode).
+* **[Vite](https://vitejs.dev/)** - Szybkie narzędzie do budowania i serwowania aplikacji.
+
+### Stan i walidacja
+
 * **[Pinia](https://pinia.vuejs.org/)** - Zarządzanie stanem aplikacji (store do kalkulatora i powiadomień).
 * **[Zod](https://zod.dev/)** - Walidacja danych wejściowych (schema `panel1Schema`).
+
+### Stylowanie
+
 * **[Tailwind CSS](https://tailwindcss.com/)** - Framework CSS do nowoczesnego i responsywnego stylizowania.
 * **[PostCSS](https://postcss.org/)** - Narzędzie do przetwarzania CSS.
+* **[autoprefixer](https://github.com/postcss/autoprefixer)** - Automatyczne dodawanie prefixów vendorowych.
+
+### Dodatkowe
+
 * **[qrcode](https://www.npmjs.com/package/qrcode)** - Generowanie kodu QR do udostępniania linku.
 
-## 📁 Struktura projektu
+### Narzędzia developerskie
 
-```
-src/
-├── main.ts                # Punkt startowy aplikacji (Vue + Pinia)
-├── App.vue                # Komponent główny (orchestrator)
-├── style.css              # Globalne style + Tailwind
-├── components/
-│   ├── Toast.vue          # Komponent powiadomień toast
-│   ├── QRModal.vue        # Modal z kodem QR
-│   ├── layout/
-│   │   ├── Header.vue     # Nagłówek aplikacji
-│   │   └── PanelSwitcher.vue  # Przełącznik między panelami
-│   ├── forms/
-│   │   ├── SingleCutForm.vue    # Formularz dla jednego cięcia
-│   │   └── MultiCutForm.vue     # Formularz dla wielu cięć (w przygotowaniu)
-│   └── visualizer/
-│       ├── LayoutVisualizer.vue   # Generowanie SVG z LayoutItem[]
-│       ├── ResultSection.vue      # Kontener dla wizualizacji cięcia i dystansu
-│       └── LayoutDetailsModal.vue # Modal ze szczegółami układu
-├── stores/
-│   ├── calculatorStore.ts # Logika kalkulacji, układy noży/gum/dystansów
-│   └── toastStore.ts      # Zarządzanie powiadomieniami
-├── validation/
-│    └── panel1Schema.ts   # Schema walidacji Zod dla Panelu 1
-```
+* **[ESLint](https://eslint.org/)** - Statyczna analiza kodu.
+* **[Prettier](https://prettier.io/)** - Formatowanie kodu.
+* **[vue-tsc](https://github.com/vuejs/language-tools/tree/master/packages/tsc)** - TypeScript checker dla Vue.
 
 ## 🛠️ Funkcje
 

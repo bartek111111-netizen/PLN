@@ -30,3 +30,220 @@ body {
   background-color: #000000 !important;
   opacity: 1 !important;
 }
+
+/* ====================================
+   Reusable Tailwind @apply Classes
+   ==================================== */
+
+/* App Background */
+.app-bg {
+  @apply w-full min-h-screen flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900;
+}
+
+/* Header */
+.header-bg {
+  @apply bg-gradient-to-r from-blue-600 to-cyan-600 shadow-2xl z-50 relative;
+}
+
+.header-container {
+  @apply max-w-6xl mx-auto px-6 py-8 text-center;
+}
+
+.header-title {
+  @apply text-4xl font-bold text-white;
+}
+
+.header-subtitle {
+  @apply text-blue-100 mt-2 text-lg;
+}
+
+/* Panel Switcher */
+.panel-switcher-wrapper {
+  @apply sticky top-0 z-[100] flex justify-center px-4 sm:px-6 -mb-8 sm:-mb-12;
+}
+
+.panel-switcher-container {
+  @apply rounded-2xl border border-slate-600 shadow-2xl bg-slate-900/95 backdrop-blur-sm px-4 py-4;
+}
+
+.panel-switcher-btn-base {
+  @apply px-8 py-3 font-semibold rounded-xl transition-all duration-200 border-2;
+}
+
+.panel-switcher-btn-active-blue {
+  @apply bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-400 shadow-lg shadow-blue-500/30;
+}
+
+.panel-switcher-btn-active-cyan {
+  @apply bg-gradient-to-r from-cyan-500 to-cyan-600 text-white border-cyan-400 shadow-lg shadow-cyan-500/30;
+}
+
+.panel-switcher-btn-inactive {
+  @apply bg-slate-600 text-white border-slate-500 hover:bg-slate-500 hover:border-slate-400;
+}
+
+/* Main Content */
+.main-container {
+  @apply flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 pt-8 sm:pt-12;
+}
+
+.panel-card {
+  @apply bg-gradient-to-br from-slate-800 to-slate-700 p-6 sm:p-10 rounded-2xl shadow-2xl border border-slate-600;
+}
+
+.panel-title {
+  @apply text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-400 to-blue-300 bg-clip-text text-transparent mb-6 sm:mb-8 text-center;
+}
+
+.panel-title-alt {
+  @apply text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-300 bg-clip-text text-transparent mb-6 sm:mb-8 text-center;
+}
+
+/* Form */
+.form-container {
+  @apply space-y-3;
+}
+
+.form-label {
+  @apply block text-slate-200 font-semibold mb-2 text-sm;
+}
+
+.form-input-base {
+  @apply w-full max-w-[280px] px-3 py-1.5 bg-slate-900 border-2 border-slate-600 rounded-lg text-slate-100 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition;
+}
+
+.calculate-btn {
+  @apply w-full max-w-[350px] mt-8 px-6 py-3 bg-gradient-to-r from-green-400 to-emerald-500 text-white font-bold text-base rounded-2xl shadow-lg shadow-green-500/30 hover:from-green-500 hover:to-emerald-600 hover:shadow-green-500/50 transition-all duration-300 transform active:scale-95;
+}
+
+/* Result Section */
+.result-card {
+  @apply mt-4 p-5 bg-gradient-to-r from-blue-900/40 to-cyan-900/40 rounded-xl;
+}
+
+.result-card-alt {
+  @apply mt-4 p-5 bg-gradient-to-r from-cyan-900/40 to-blue-900/40 rounded-xl;
+}
+
+.result-label {
+  @apply text-slate-100;
+}
+
+.result-strong {
+  @apply text-blue-300;
+}
+
+.result-strong-alt {
+  @apply text-cyan-300;
+}
+
+.result-value {
+  @apply text-white font-mono text-lg;
+}
+
+/* Cut Result */
+.cut-result-container {
+  @apply mt-4 flex flex-col items-center justify-center w-full gap-6;
+}
+
+.cut-result-label {
+  @apply text-slate-200 font-semibold mb-2 text-sm text-center;
+}
+
+.cut-result-value {
+  @apply text-blue-300;
+}
+
+.spacing-result-value {
+  @apply text-cyan-300;
+}
+
+/* Layout Visualizer */
+.visualizer-container {
+  @apply w-full flex justify-center overflow-x-auto;
+}
+
+.visualizer-svg {
+  @apply w-full max-w-3xl h-[80px] bg-slate-900 rounded-lg border border-slate-700 cursor-pointer;
+}
+
+/* QR Button */
+.qr-button {
+  @apply fixed bottom-[70px] right-6 z-[200] w-14 h-14 rounded-full bg-slate-700/80 hover:bg-slate-600/90 transition text-white shadow-lg backdrop-blur-sm flex items-center justify-center;
+}
+
+.qr-button-text {
+  @apply text-xs font-bold leading-tight;
+}
+
+/* QR Container */
+.qr-container {
+  @apply fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 w-[320px] max-w-[calc(100vw-2rem)];
+}
+
+/* Layout Details Modal */
+.modal-backdrop {
+  @apply fixed inset-0 bg-slate-900 z-[100000];
+}
+
+.modal-content {
+  @apply fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] max-w-full bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100001];
+}
+
+.modal-header {
+  @apply p-5 border-b border-slate-700/50 bg-slate-800/50;
+}
+
+.modal-title {
+  @apply text-lg font-bold text-white tracking-tight text-center;
+}
+
+.modal-subtitle {
+  @apply text-slate-400 text-sm text-center mt-1;
+}
+
+.modal-subtitle-value {
+  @apply text-white font-mono;
+}
+
+.modal-body {
+  @apply p-5 overflow-y-auto max-h-[50vh];
+}
+
+.modal-list {
+  @apply space-y-4;
+}
+
+.modal-list-item {
+  @apply flex items-start group;
+}
+
+.modal-list-item-badge {
+  @apply flex-shrink-0 w-6 h-6 rounded-full bg-slate-700 text-slate-400 text-[10px] font-bold flex items-center justify-center mt-0.5 group-hover:bg-blue-600 group-hover:text-white transition-colors;
+}
+
+.modal-list-item-text {
+  @apply text-slate-200 text-sm leading-relaxed font-medium;
+}
+
+.modal-empty-text {
+  @apply text-slate-500 italic text-sm text-center py-4;
+}
+
+.modal-footer {
+  @apply p-4 bg-slate-900/30 border-t border-slate-700/50 text-center;
+}
+
+.modal-footer-text {
+  @apply text-slate-500 text-[10px] uppercase tracking-widest font-semibold;
+}
+
+/* Flex utilities */
+.flex-center {
+  @apply flex justify-center;
+}
+
+/* Text color utilities */
+.text-blue-300 {
+  @apply text-blue-300;
+}

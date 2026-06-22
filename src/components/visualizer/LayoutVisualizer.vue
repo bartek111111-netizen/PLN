@@ -1,10 +1,10 @@
 <template>
-  <div class="w-full flex justify-center overflow-x-auto">
+  <div class="visualizer-container">
     <svg
       :viewBox="`0 0 ${width} 120`"
       role="img"
       :aria-label="`Визуализация: ${prefix || 'layout'}`"
-      class="w-full max-w-3xl h-[80px] bg-slate-900 rounded-lg border border-slate-700 cursor-pointer"
+      class="visualizer-svg"
       @click="emit('click')"
     >
       <g v-for="(item, index) in scaledLayout" :key="`${prefix}-${index}-${item.position}`">
@@ -104,7 +104,7 @@ const ELEMENT_COLORS: Record<string, string> = {
   default: '#cccccc',
 }
 
-const getColor = (item: LayoutItem) => {
+const getColor = (item: LayoutItem): string => {
   if (item.type === 'gum') {
     return item.color ? getGumColor(item.color) : ELEMENT_COLORS.gum
   }
@@ -114,7 +114,7 @@ const getColor = (item: LayoutItem) => {
   return ELEMENT_COLORS[item.type] || ELEMENT_COLORS.default
 }
 
-const getGumColor = (color?: string) => {
+const getGumColor = (color?: string): string => {
   const map: Record<string, string> = {
     blue: '#3b82f6',
     red: '#ef4444',
@@ -124,7 +124,7 @@ const getGumColor = (color?: string) => {
   return map[color || 'blue'] || ELEMENT_COLORS.gum
 }
 
-interface ScaledLayoutItem extends LayoutItem {
+type ScaledLayoutItem = LayoutItem & {
   position: number
   width: number
 }
