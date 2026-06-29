@@ -329,3 +329,14 @@ Aplikacja jest konfigurowana jako Progressive Web App przez Vite PWA plugin:
 - Manifest: generowany automatycznie przez plugin
 - Service Worker: generowany automatycznie
 - URL: `https://bartek111111-netizen.github.io/PLN/`
+
+---
+
+## Agent Boundaries
+
+### Terminal & Git — Restrictions
+
+- **Dozwolone komendy terminalne**: `npm run dev`, `npm run build`, `npm run lint`, `npm run format`, `npm run type-check`, `npm run preview`, `eslint`, `prettier`, `node`, `grep`, `ls`, `cat`, itp.
+- **Dozwolone git komendy**: `git pull`, `git add`, `git status`, `git diff`.
+- **NIGDY nie wykonuj `git commit`** — to robi użytkownik samodzielnie.
+- **NIGDY nie wykonuj `git push`** — to robi użytkownik samodzielnie.

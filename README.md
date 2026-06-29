@@ -13,11 +13,11 @@ Ten program służy do obliczania optymalnych konfiguracji noży do maszyn do ci
 ### Stan i walidacja
 
 * **[Pinia](https://pinia.vuejs.org/)** - Zarządzanie stanem aplikacji (store do kalkulatora i powiadomień).
-* **[Zod](https://zod.dev/)** - Walidacja danych wejściowych (schema `panel1Schema`).
+* **[Zod v4](https://zod.dev/)** - Walidacja danych wejściowych (schema `panel1Schema`).
 
 ### Stylowanie
 
-* **[Tailwind CSS](https://tailwindcss.com/)** - Framework CSS do nowoczesnego i responsywnego stylizowania.
+* **[Tailwind CSS v4](https://tailwindcss.com/)** - Framework CSS do nowoczesnego i responsywnego stylizowania (konfiguracja w CSS via `@import 'tailwindcss'`, bez `tailwind.config.js`).
 * **[PostCSS](https://postcss.org/)** - Narzędzie do przetwarzania CSS.
 * **[autoprefixer](https://github.com/postcss/autoprefixer)** - Automatyczne dodawanie prefixów vendorowych.
 
