@@ -3,9 +3,7 @@
     <button
       :class="[
         'panel-switcher-btn-base',
-        currentPanel === 1
-          ? 'panel-switcher-btn-active-blue'
-          : 'panel-switcher-btn-inactive',
+        currentPanel === 1 ? 'panel-switcher-btn-active-blue' : 'panel-switcher-btn-inactive',
       ]"
       @click="switchPanel(1)"
     >
@@ -14,9 +12,7 @@
     <button
       :class="[
         'panel-switcher-btn-base',
-        currentPanel === 2
-          ? 'panel-switcher-btn-active-cyan'
-          : 'panel-switcher-btn-inactive',
+        currentPanel === 2 ? 'panel-switcher-btn-active-cyan' : 'panel-switcher-btn-inactive',
       ]"
       @click="switchPanel(2)"
     >

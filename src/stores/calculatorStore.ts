@@ -71,6 +71,8 @@ export interface CutResult {
   spacing: LayoutItem[]
   cutWidth: number
   spacingWidth: number
+  gumCounts: { cut: number; spacing: number }
+  remainingWidths: { cut: number; spacing: number }
 }
 
 export interface ModalState {
@@ -94,22 +96,15 @@ function getSpacerBounds(n: number): { min: number; max: number } {
 const MAX_GUMS = 12
 
 /**
- * Builds the middle layout (gums + spacers) for a given remaining width.
+ * Auto-detects the optimal number of gums for a given remaining width.
  * @param remaining - available width in mm to fill
- * @param gumColor - color of gums to use
  * @param edgeSpacers - whether to add spacers on edges
  */
-function _buildMiddle(
-  remaining: number,
-  gumColor: string,
-  edgeSpacers: boolean = true,
-): LayoutItem[] {
-  if (remaining <= 0) return []
-
+function _autoDetectGums(remaining: number, edgeSpacers: boolean = true): number {
   const slotsFor = (n: number) => (edgeSpacers ? n + 1 : n - 1)
+  const startN = edgeSpacers ? 1 : 2
 
   let bestGums = 0
-  const startN = edgeSpacers ? 1 : 2
 
   // Find optimal number of gums where spacers fit within bounds
   for (let n = startN; n <= MAX_GUMS; n++) {
@@ -143,6 +138,29 @@ function _buildMiddle(
     }
   }
 
+  return bestGums
+}
+
+/**
+ * Builds the middle layout (gums + spacers) for a given remaining width.
+ * @param remaining - available width in mm to fill
+ * @param gumColor - color of gums to use
+ * @param edgeSpacers - whether to add spacers on edges
+ * @param gumCount - explicit number of gums (overrides auto-detection)
+ */
+function _buildMiddle(
+  remaining: number,
+  gumColor: string,
+  edgeSpacers: boolean = true,
+  gumCount?: number,
+): LayoutItem[] {
+  if (remaining <= 0) return []
+
+  const slotsFor = (n: number) => (edgeSpacers ? n + 1 : n - 1)
+
+  const bestGums =
+    gumCount !== undefined ? Math.max(0, gumCount) : _autoDetectGums(remaining, edgeSpacers)
+
   // If nothing fits, use a single spacers block
   if (bestGums === 0) {
     return [{ type: 'spacers', totalWidth: remaining }]
@@ -150,7 +168,13 @@ function _buildMiddle(
 
   const numSlots = slotsFor(bestGums)
   const spacerSpace = remaining - bestGums * DEFAULT_GUM_SIZE
-  const eachSpacer = spacerSpace / numSlots
+
+  // Guard: if spacerSpace is negative (shouldn't happen with proper clamping)
+  if (spacerSpace < 0) {
+    return [{ type: 'spacers', totalWidth: remaining }]
+  }
+
+  const eachSpacer = numSlots > 0 ? spacerSpace / numSlots : 0
 
   const layout: LayoutItem[] = []
   let roundedSum = 0
@@ -212,6 +236,7 @@ export const useCalculatorStore = defineStore('calculator', () => {
   const panel1Result = ref<CutResult | null>(null)
   const showResult1 = ref(false)
   const lastWidth1 = ref<number | null>(null)
+  const gumAdjustment = ref({ cut: 0, spacing: 0 })
   const modal = ref<ModalState>({
     isOpen: false,
     layout: null,
@@ -297,6 +322,16 @@ export const useCalculatorStore = defineStore('calculator', () => {
     gapOverridden.value = overridden
   }
 
+  // ─── Gum Adjustment ──────────────────────────────────────────────────────
+
+  function adjustGumCount(type: 'cut' | 'spacing', delta: number) {
+    gumAdjustment.value[type] += delta
+  }
+
+  function resetGumAdjustment() {
+    gumAdjustment.value = { cut: 0, spacing: 0 }
+  }
+
   // ─── Modal ───────────────────────────────────────────────────────────────
 
   function openModal(layout: LayoutItem[] | null, title: string) {
@@ -377,8 +412,18 @@ export const useCalculatorStore = defineStore('calculator', () => {
 
     const spacingGumColor = thickness >= GUM_YELLOW_THICKNESS ? 'yellow' : 'red'
 
-    const cutMiddle = _buildMiddle(cutWidth - knifeSize * 2, DEFAULT_GUM_COLOR, false)
-    const spacingMiddle = _buildMiddle(width - knifeSize * 2, spacingGumColor, false)
+    const cutRemaining = cutWidth - knifeSize * 2
+    const spacingRemaining = width - knifeSize * 2
+
+    // Auto-detect gum counts, then apply user adjustment
+    const autoCutGums = _autoDetectGums(cutRemaining, false)
+    const autoSpacingGums = _autoDetectGums(spacingRemaining, false)
+
+    const cutGums = Math.max(0, autoCutGums + gumAdjustment.value.cut)
+    const spacingGums = Math.max(0, autoSpacingGums + gumAdjustment.value.spacing)
+
+    const cutMiddle = _buildMiddle(cutRemaining, DEFAULT_GUM_COLOR, false, cutGums)
+    const spacingMiddle = _buildMiddle(spacingRemaining, spacingGumColor, false, spacingGums)
 
     const cut: LayoutItem[] = [
       { type: 'knife', size: knifeSize, color: DEFAULT_KNIFE_COLOR },
@@ -389,9 +434,16 @@ export const useCalculatorStore = defineStore('calculator', () => {
     const hasGumsInCut = cutMiddle.some((item) => item.type === 'gum')
 
     let spacing: LayoutItem[]
+    let actualSpacingGums = spacingGums
+    let actualSpacingRemaining = spacingRemaining
     if (!hasGumsInCut && width >= 20) {
       const gumSize = DEFAULT_GUM_SIZE
-      const remainingWidth = width - gumSize
+      const maxGums = Math.floor((width - 2 * MIN_SPACER) / gumSize)
+      const autoN = Math.max(1, Math.min(maxGums, Math.floor(width / gumSize)))
+      const n = Math.max(1, Math.min(maxGums, autoN + gumAdjustment.value.spacing))
+      actualSpacingGums = n
+      actualSpacingRemaining = width
+      const remainingWidth = width - n * gumSize
       const targetWidth = remainingWidth / 2
 
       // Find the closest spacer value to the target width
@@ -414,7 +466,9 @@ export const useCalculatorStore = defineStore('calculator', () => {
       const rightSpacerWidth = remainingWidth - leftSpacerWidth
       spacing = []
       if (leftSpacerWidth > 0) spacing.push({ type: 'spacers', totalWidth: leftSpacerWidth })
-      spacing.push({ type: 'gum', size: gumSize, color: spacingGumColor })
+      for (let i = 0; i < n; i++) {
+        spacing.push({ type: 'gum', size: gumSize, color: spacingGumColor })
+      }
       if (rightSpacerWidth > 0) spacing.push({ type: 'spacers', totalWidth: rightSpacerWidth })
     } else {
       spacing = [
@@ -431,6 +485,8 @@ export const useCalculatorStore = defineStore('calculator', () => {
       spacing,
       cutWidth: sumWidth(cut),
       spacingWidth: sumWidth(spacing),
+      gumCounts: { cut: cutGums, spacing: actualSpacingGums },
+      remainingWidths: { cut: cutRemaining, spacing: actualSpacingRemaining },
     }
   }
 
@@ -472,11 +528,14 @@ export const useCalculatorStore = defineStore('calculator', () => {
     panel1Result,
     showResult1,
     lastWidth1,
+    gumAdjustment,
     modal,
     setPanel1Values,
     autoCalculateGap,
     setGapOverridden,
     setPanel2Values,
+    adjustGumCount,
+    resetGumAdjustment,
     openModal,
     closeModal,
     calculate,

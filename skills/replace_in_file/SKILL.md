@@ -29,9 +29,10 @@ Edycja wybranych fragmentów istniejącego pliku bez nadpisywania całej zawarto
 5. Zweryfikuj wynik za pomocą `read_file`
 
 ## Best Practices
-- **Maksymalna długość SEARCH bloku: 10-15 linii** — im krótszy, tym bezpieczniejszy
+> Uwaga: poniższe limity to **heurystyki** (zalecenia praktyczne), a nie twarde limity narzędzia `replace_in_file`. Ich przestrzeganie zmniejsza ryzyko błędu "Invalid API Response" po stronie providera LLM.
+- **Długość SEARCH bloku: 10-15 linii** — im krótszy, tym bezpieczniejszy
 - **Używaj unikalnego kontekstu** — SEARCH musi jednoznacznie identyfikować fragment
-- **Stosuj wiele małych bloków zamiast jednego dużego** — max 3-4 bloki na wywołanie
+- **Stosuj wiele małych bloków zamiast jednego dużego** — ok. 3-4 bloki na wywołanie
 - **Zawsze wklejaj pełne linie** — nigdy nie używaj fragmentów w połowie linii
 - **Kolejność bloków: od góry do dołu pliku**
 - **Uwzględnij białe znaki** — SEARCH musi pasować znak do znaku (spacje, tabulatory, newline)

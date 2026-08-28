@@ -10,17 +10,9 @@
     </div>
 
     <main class="main-container">
-
       <!-- Panel 1 -->
-      <div
-        v-if="currentPanel === 1"
-        class="panel-card"
-      >
-        <h2
-          class="panel-title"
-        >
-          Oblicz 1 cięcie
-        </h2>
+      <div v-if="currentPanel === 1" class="panel-card">
+        <h2 class="panel-title">Oblicz 1 cięcie</h2>
         <div class="flex justify-center">
           <SingleCutForm />
         </div>
@@ -29,15 +21,8 @@
 
       <!-- Panel 2 -->
       <!-- Panel 2 - obliczenia wielokrotnych cięć (w planach) -->
-      <div
-        v-if="currentPanel === 2"
-        class="panel-card"
-      >
-        <h2
-          class="panel-title-alt"
-        >
-          Oblicz wszystkie cięcia
-        </h2>
+      <div v-if="currentPanel === 2" class="panel-card">
+        <h2 class="panel-title-alt">Oblicz wszystkie cięcia</h2>
         <div class="flex justify-center">
           <MultiCutForm />
         </div>
@@ -58,11 +43,7 @@
     </div>
 
     <!-- QR Button -->
-    <button
-      class="qr-button"
-      title="Kod QR"
-      @click="showQR = true"
-    >
+    <button class="qr-button" title="Kod QR" @click="showQR = true">
       <span class="qr-button-text">QR</span>
     </button>
 

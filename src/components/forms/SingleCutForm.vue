@@ -55,12 +55,13 @@
       class="w-full max-w-[350px] mt-8 px-6 py-3 bg-gradient-to-r from-green-400 to-emerald-500 text-white font-bold text-base rounded-2xl shadow-lg shadow-green-500/30 hover:from-green-500 hover:to-emerald-600 hover:shadow-green-500/50 transition-all duration-300 transform active:scale-95"
       @click="calculate"
     >
-      {{ UI_CALCULATE_BUTTON }}
+      {{ buttonText }}
     </button>
   </form>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useCalculatorStore } from '../../stores/calculatorStore'
 import { useToastStore } from '../../stores/toastStore'
 import { panel1Schema } from '../../validation/panel1Schema'
@@ -79,6 +80,7 @@ import {
   MIN_CUT_GAP,
   KNIFE_SIZES,
   UI_CALCULATE_BUTTON,
+  UI_CALCULATE_BUTTON_AGAIN,
 } from '../../constants'
 import { handleValidationError } from '../../utils/errorHandler'
 import NumberInput from './NumberInput.vue'
@@ -86,10 +88,17 @@ import NumberInput from './NumberInput.vue'
 const store = useCalculatorStore()
 const toastStore = useToastStore()
 
+const buttonText = computed(() =>
+  store.gumAdjustment.cut !== 0 || store.gumAdjustment.spacing !== 0
+    ? UI_CALCULATE_BUTTON_AGAIN
+    : UI_CALCULATE_BUTTON,
+)
+
 const calculate = () => {
   try {
     panel1Schema.parse(store.panels.panel1)
     store.calculate(1, store.panels.panel1)
+    store.resetGumAdjustment()
     toastStore.success('Obliczenia wykonane pomyślnie.', 2500)
   } catch (err) {
     handleValidationError(err, toastStore)

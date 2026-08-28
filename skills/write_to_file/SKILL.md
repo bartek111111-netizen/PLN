@@ -34,7 +34,6 @@ Tworzenie nowych plików lub nadpisywanie całej zawartości istniejących plik�
 | Za długa zawartość pliku (>500 linii) | Podziel na mniejsze pliki |
 | Nieprawidłowe znaki w content | Unikaj znaków kontrolnych, używaj escape sequences |
 | Brak zamknięcia `</content>` | Zawsze zamykaj tag content |
-| Zagnieżdżone tagi XML w content | Ekranuj `<` jako `<` i `>` jako `>` |
 
 ### Pattern błędu
 ```
@@ -45,20 +44,6 @@ Invalid API Response: The provider returned an empty or unparsable response.
 1. Sprawdź czy content nie zawiera niezamkniętych tagów XML
 2. Skróć plik — podziel na mniejsze moduły
 3. Upewnij się, że content nie zawiera `</content>` jako tekstu zwykłego
-
-## Ekranowanie znaków XML w content
-Jeśli plik zawiera znaki `<` lub `>` (np. w kodzie JavaScript/HTML), musisz je ekranować:
-- `<` → `<`
-- `>` → `>`
-- `&` → `&`
-
-LUB użyj CDATA:
-```xml
-<content><![CDATA[
-  <div>Hello</div>
-  const x = a < b && b > c;
-]]></content>
-```
 
 ## Example: Good Usage — nowy plik
 ```xml
@@ -85,3 +70,6 @@ defineProps<Props>()
   padding: 1rem;
 }
 </style>
+</content>
+</write_to_file>
+```

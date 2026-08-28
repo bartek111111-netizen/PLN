@@ -5,10 +5,7 @@
       <div class="modal-backdrop" />
 
       <!-- Modal content -->
-      <div
-        class="modal-content"
-        @click.stop
-      >
+      <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3 class="modal-title">
             {{ title || 'Szczegóły układu' }}
@@ -22,27 +19,19 @@
         <div class="modal-body">
           <ul class="modal-list">
             <li v-for="(item, index) in formattedItems" :key="index" class="modal-list-item">
-              <span
-                class="modal-list-item-badge"
-                style="margin-right: 12px"
-              >
+              <span class="modal-list-item-badge" style="margin-right: 12px">
                 {{ index + 1 }}
               </span>
               <span class="modal-list-item-text">{{ item }}</span>
             </li>
-            <li
-              v-if="formattedItems.length === 0"
-              class="modal-empty-text"
-            >
+            <li v-if="formattedItems.length === 0" class="modal-empty-text">
               Brak elementów w układzie.
             </li>
           </ul>
         </div>
 
         <div class="modal-footer">
-          <p class="modal-footer-text">
-            Kliknij poza, aby zamknąć
-          </p>
+          <p class="modal-footer-text">Kliknij poza, aby zamknąć</p>
         </div>
       </div>
     </div>
